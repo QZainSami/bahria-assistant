@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Outer Shield / Emblem Base with Dracula Purple/Cyan Gradient -->
+    <path
+        android:pathData="M24,4 L38,10 C38,24 24,42 24,42 C24,42 10,24 10,10 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="315"
+                android:endColor="#8BE9FD"
+                android:startColor="#BD93F9"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Shield Inset (Deep Dark Background) -->
+    <path
+        android:fillColor="#181920"
+        android:pathData="M24,7 L35.5,12 C35.5,23.5 24,38.5 24,38.5 C24,38.5 12.5,23.5 12.5,12 Z" />
+
+    <!-- Stylized Academic Cap / Portal Wings -->
+    <path
+        android:fillColor="#BD93F9"
+        android:pathData="M24,14 L33,18.5 L24,23 L15,18.5 Z" />
+
+    <path
+        android:fillColor="#8BE9FD"
+        android:pathData="M18,21.5 L18,26.5 C18,28.5 20.7,30.5 24,30.5 C27.3,30.5 30,28.5 30,26.5 L30,21.5 L24,24.5 Z" />
+
+    <!-- Center Academic Star Accent -->
+    <path
+        android:fillColor="#F1FA8C"
+        android:pathData="M24,16.5 L24.8,18.2 L26.6,18.5 L25.3,19.8 L25.6,21.6 L24,20.7 L22.4,21.6 L22.7,19.8 L21.4,18.5 L23.2,18.2 Z" />
+</vector>

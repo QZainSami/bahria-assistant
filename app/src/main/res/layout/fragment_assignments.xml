@@ -12,76 +12,79 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Banner Card with Sync Button -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAssignmentBanner"
+        <!-- Compact Header: Title, Count, and Direct Sync Button -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="12dp"
-            app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="18dp"
-            app:strokeColor="@color/bg_card_stroke"
-            app:strokeWidth="1dp">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="6dp">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="14dp">
-
-                <ImageView
-                    android:id="@+id/ivBannerIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_marginEnd="10dp"
-                    android:src="@drawable/ic_check_circle"
-                    app:tint="@color/status_safe"
-                    tools:ignore="ContentDescription" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tvBannerText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="sans-serif-bold"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"
-                    tools:text="Found 2 pending assignment(s)" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSyncAssignments"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:text="Sync LMS"
-                    android:textAllCaps="false"
-                    android:textColor="@color/bg_main"
-                    android:textSize="12sp"
-                    app:backgroundTint="@color/brand_primary"
-                    app:cornerRadius="10dp"
-                    app:icon="@drawable/ic_refresh"
-                    app:iconTint="@color/bg_main" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="LMS Assignments"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp" />
 
-        <!-- Search Bar -->
+                <TextView
+                    android:id="@+id/tvAssignmentsSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    tools:text="3 pending tasks · Synced just now" />
+            </LinearLayout>
+
+            <!-- Instant Sync LMS Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSyncAssignments"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:minHeight="36dp"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Sync LMS"
+                android:textAllCaps="false"
+                android:textColor="@color/bg_main"
+                android:textSize="12sp"
+                app:backgroundTint="@color/brand_primary"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_refresh"
+                app:iconSize="14dp"
+                app:iconTint="@color/bg_main" />
+        </LinearLayout>
+
+        <!-- Search Bar (Compact) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilSearch"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="6dp"
             android:hint="@string/search_assignments_hint"
-            app:boxCornerRadiusBottomEnd="14dp"
-            app:boxCornerRadiusBottomStart="14dp"
-            app:boxCornerRadiusTopEnd="14dp"
-            app:boxCornerRadiusTopStart="14dp"
+            app:boxCornerRadiusBottomEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp"
+            app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusTopStart="10dp"
             app:boxStrokeColor="@color/brand_primary"
             app:hintTextColor="@color/text_secondary"
             app:startIconDrawable="@drawable/ic_assignment"
@@ -93,8 +96,11 @@
                 android:layout_height="wrap_content"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
                 android:singleLine="true"
-                android:textColor="@color/text_primary" />
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Filter Chips: Pending, Submitted, All -->
@@ -102,8 +108,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
@@ -119,7 +125,8 @@
                     android:layout_height="wrap_content"
                     android:checked="true"
                     android:text="Pending"
-                    android:textColor="@color/text_primary" />
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipSubmitted"
@@ -127,15 +134,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Submitted"
-                    android:textColor="@color/text_primary" />
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipAllAssignments"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All"
-                    android:textColor="@color/text_primary" />
+                    android:text="All Tasks"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
@@ -145,6 +154,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
             tools:listitem="@layout/item_assignment" />
 
         <!-- Empty State View -->
@@ -155,12 +166,12 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="32dp"
+            android:padding="24dp"
             android:visibility="gone">
 
             <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_assignment"
                 app:tint="@color/brand_primary"
                 tools:ignore="ContentDescription" />
@@ -168,11 +179,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:text="@string/empty_assignments"
                 android:textAlignment="center"
                 android:textColor="@color/text_secondary"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </LinearLayout>
 
     </LinearLayout>

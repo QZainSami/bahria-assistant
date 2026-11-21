@@ -10,7 +10,9 @@ import com.bahria.portal.R
 import com.bahria.portal.data.model.Assignment
 import com.bahria.portal.databinding.ItemAssignmentBinding
 
-class AssignmentsAdapter : ListAdapter<Assignment, AssignmentsAdapter.ViewHolder>(DiffCallback) {
+class AssignmentsAdapter(
+    private val onDownloadClicked: (Assignment) -> Unit
+) : ListAdapter<Assignment, AssignmentsAdapter.ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemAssignmentBinding.inflate(
@@ -31,18 +33,15 @@ class AssignmentsAdapter : ListAdapter<Assignment, AssignmentsAdapter.ViewHolder
             binding.tvAssignmentTitle.text = assignment.title
             binding.tvAssignmentCourse.text = assignment.courseName
             binding.tvDueDate.text = "Due: ${assignment.dueDateString}"
-            binding.tvStatusTag.text = assignment.status
 
             if (assignment.isSubmitted) {
                 binding.tvCountdownBadge.text = "Submitted"
                 binding.tvCountdownBadge.setBackgroundResource(R.drawable.bg_status_safe)
                 binding.tvCountdownBadge.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
-                binding.tvStatusTag.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
             } else if (assignment.isOverdue) {
                 binding.tvCountdownBadge.text = "Overdue"
                 binding.tvCountdownBadge.setBackgroundResource(R.drawable.bg_status_critical)
                 binding.tvCountdownBadge.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
-                binding.tvStatusTag.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
             } else {
                 val days = assignment.calculatedDaysRemaining
                 val hours = assignment.calculatedHoursRemaining
@@ -55,17 +54,21 @@ class AssignmentsAdapter : ListAdapter<Assignment, AssignmentsAdapter.ViewHolder
                         binding.tvCountdownBadge.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
                     }
                     days <= 2 -> {
-                        binding.tvCountdownBadge.text = "⏰ $days day remaining"
+                        val txt = if (days <= 1) "1 day left" else "$days days left"
+                        binding.tvCountdownBadge.text = "⏰ $txt"
                         binding.tvCountdownBadge.setBackgroundResource(R.drawable.bg_status_warning)
                         binding.tvCountdownBadge.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
                     }
                     else -> {
-                        binding.tvCountdownBadge.text = "⏰ $days days remaining"
+                        binding.tvCountdownBadge.text = "⏰ $days days left"
                         binding.tvCountdownBadge.setBackgroundResource(R.drawable.bg_status_safe)
                         binding.tvCountdownBadge.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
                     }
                 }
-                binding.tvStatusTag.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
+            }
+
+            binding.btnDownloadAssignment.setOnClickListener {
+                onDownloadClicked(assignment)
             }
         }
     }

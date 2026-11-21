@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="6dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="6dp"
+    android:layout_marginStart="14dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginEnd="14dp"
+    android:layout_marginBottom="5dp"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="14dp"
     app:cardElevation="2dp"
     app:strokeColor="@color/bg_card_stroke"
     app:strokeWidth="1dp">
@@ -18,17 +18,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="12dp">
 
         <ImageView
             android:id="@+id/ivNotifType"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginEnd="14dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="12dp"
             android:background="@drawable/bg_pill_accent"
-            android:padding="8dp"
+            android:padding="6dp"
             android:src="@drawable/ic_notifications"
-            app:tint="@color/brand_primary_variant"
+            app:tint="@color/brand_primary"
             tools:ignore="ContentDescription" />
 
         <LinearLayout
@@ -43,25 +43,25 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 tools:text="New Assignment: Complex Computing Problem" />
 
             <TextView
                 android:id="@+id/tvNotifMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 tools:text="Design &amp; Analysis of Algorithms • Due: 15 Dec 2026 - 11:55 PM" />
 
             <TextView
                 android:id="@+id/tvNotifTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/text_muted"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 tools:text="Nov 21, 2026 • 12:52 PM" />
         </LinearLayout>
     </LinearLayout>

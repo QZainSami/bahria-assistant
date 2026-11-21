@@ -256,6 +256,8 @@ class PortalScraper {
                     val status = if (isPending) "Pending" else "Submitted"
 
                     val dueTimestamp = Assignment.parseDate(dueDate)
+                    val link = row.select("a[href]").firstOrNull()?.attr("abs:href") ?: ""
+                    val fileName = if (link.isNotBlank() && !link.endsWith("/")) link.substringAfterLast("/") else "${title.replace(" ", "_")}.pdf"
 
                     val item = Assignment(
                         id = "${course}_$title".replace(" ", "_"),
@@ -263,7 +265,9 @@ class PortalScraper {
                         courseName = course,
                         dueDateString = dueDate,
                         dueTimestamp = dueTimestamp,
-                        status = status
+                        status = status,
+                        downloadUrl = link,
+                        fileName = fileName
                     )
                     list.add(item)
                 }
@@ -272,6 +276,34 @@ class PortalScraper {
             Result.success(list)
         } catch (e: Exception) {
             Log.e(TAG, "Fetch assignments failed: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun downloadAssignmentFile(
+        downloadUrl: String,
+        destinationFile: java.io.File
+    ): Result<java.io.File> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(downloadUrl)
+                .header("User-Agent", USER_AGENT)
+                .header("Referer", LMS_ASSIGNMENTS_URL)
+                .build()
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                return@withContext Result.failure(Exception("HTTP ${response.code}: Download failed"))
+            }
+            val body = response.body ?: return@withContext Result.failure(Exception("Empty file response"))
+            destinationFile.parentFile?.mkdirs()
+            destinationFile.outputStream().use { out ->
+                body.byteStream().use { input ->
+                    input.copyTo(out)
+                }
+            }
+            Result.success(destinationFile)
+        } catch (e: Exception) {
+            Log.e(TAG, "File download failed: ${e.message}", e)
             Result.failure(e)
         }
     }

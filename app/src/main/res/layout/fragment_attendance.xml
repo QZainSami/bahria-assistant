@@ -7,234 +7,152 @@
     android:layout_height="match_parent"
     android:background="@color/bg_main">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:orientation="vertical">
 
+        <!-- Compact Header: Title, Sync Status, and Direct Sync Button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="24dp">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp">
 
-            <!-- Hero Summary Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="22dp"
-                app:cardElevation="4dp"
-                app:strokeColor="@color/bg_card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/overall_attendance"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="13sp" />
-
-                            <TextView
-                                android:id="@+id/tvHeroPercentage"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:fontFamily="sans-serif-black"
-                                android:textColor="@color/status_safe"
-                                android:textSize="32sp"
-                                tools:text="79.03%" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Dedicated Action Buttons: Sync Attendance & Bunk Planner -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSyncAttendance"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:text="Sync CMS"
-                            android:textAllCaps="false"
-                            android:textColor="@color/bg_main"
-                            android:textSize="12sp"
-                            app:backgroundTint="@color/brand_secondary"
-                            app:cornerRadius="12dp"
-                            app:icon="@drawable/ic_refresh"
-                            app:iconTint="@color/bg_main" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnOpenPlanner"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:text="Bunk Calc"
-                            android:textAllCaps="false"
-                            android:textColor="@color/bg_main"
-                            android:textSize="12sp"
-                            app:backgroundTint="@color/brand_primary"
-                            app:cornerRadius="12dp"
-                            app:icon="@drawable/ic_calculator"
-                            app:iconTint="@color/bg_main" />
-                    </LinearLayout>
-
-                    <!-- Quick Status Pills Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tvStatSafeCount"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_status_safe"
-                            android:gravity="center"
-                            android:paddingTop="6dp"
-                            android:paddingBottom="6dp"
-                            android:textColor="@color/status_safe"
-                            android:textSize="12sp"
-                            tools:text="4 Safe (>80%)" />
-
-                        <TextView
-                            android:id="@+id/tvStatCriticalCount"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_status_critical"
-                            android:gravity="center"
-                            android:paddingTop="6dp"
-                            android:paddingBottom="6dp"
-                            android:textColor="@color/status_critical"
-                            android:textSize="12sp"
-                            tools:text="2 Critical (&lt;75%)" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/tvLastSyncAttendance"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:textColor="@color/text_muted"
-                        android:textSize="11sp"
-                        tools:text="Last updated: Just now" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Filter Chips -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:scrollbars="none">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupAttendance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipAllCourses"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="All Courses"
-                        android:textColor="@color/text_primary" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipCritical"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Critical (&lt;75%)"
-                        android:textColor="@color/status_critical" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipSafe"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Safe (≥80%)"
-                        android:textColor="@color/status_safe" />
-                </com.google.android.material.chip.ChipGroup>
-            </HorizontalScrollView>
-
-            <!-- RecyclerView of Courses -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAttendance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="5"
-                tools:listitem="@layout/item_course_attendance" />
-
-            <!-- Empty State -->
             <LinearLayout
-                android:id="@+id/emptyAttendanceView"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="24dp"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_attendance"
-                    app:tint="@color/text_muted"
-                    tools:ignore="ContentDescription" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvHeaderTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/empty_attendance"
-                    android:textAlignment="center"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Attendance Tracking"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:id="@+id/tvAttendanceSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:fontFamily="sans-serif-medium"
                     android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="11sp"
+                    tools:text="7 courses loaded · Synced just now" />
             </LinearLayout>
 
+            <!-- Instant Sync CMS Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSyncAttendance"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:minHeight="36dp"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Sync CMS"
+                android:textAllCaps="false"
+                android:textColor="@color/bg_main"
+                android:textSize="12sp"
+                app:backgroundTint="@color/brand_secondary"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_refresh"
+                app:iconSize="14dp"
+                app:iconTint="@color/bg_main" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+
+        <!-- Filter Chips: All, Critical, Safe -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupAttendance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAllCourses"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="All Courses"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipCritical"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Critical (&lt;75%)"
+                    android:textColor="@color/status_critical"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSafe"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Safe (≥75%)"
+                    android:textColor="@color/status_safe"
+                    android:textSize="12sp" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <!-- RecyclerView of Courses -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAttendance"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            tools:itemCount="5"
+            tools:listitem="@layout/item_course_attendance" />
+
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyAttendanceView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_attendance"
+                app:tint="@color/text_muted"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/empty_attendance"
+                android:textAlignment="center"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </LinearLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

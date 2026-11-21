@@ -1,50 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Official Dracula Theme Specification (https://draculatheme.com/spec) -->
-    <!-- Backgrounds & Surfaces -->
-    <color name="bg_main">#282A36</color>           <!-- Dracula Background -->
-    <color name="bg_surface">#21222C</color>        <!-- Darker Header / Nav Surface -->
-    <color name="bg_card">#44475A</color>           <!-- Dracula Current Line / Selection -->
-    <color name="bg_card_secondary">#383A59</color> <!-- Dracula Card Secondary -->
-    <color name="bg_card_stroke">#6272A4</color>    <!-- Dracula Comment -->
-    <color name="bg_bottom_nav">#21222C</color>     <!-- Dracula Bottom Nav Surface -->
+    <!-- Darker Dracula Theme Specification -->
+    <!-- Deep Pitch Backgrounds & Surfaces -->
+    <color name="bg_main">#12131A</color>           <!-- Ultra-Dark Dracula Midnight Background -->
+    <color name="bg_surface">#181920</color>        <!-- Darker Header / Toolbar Surface -->
+    <color name="bg_card">#1E2029</color>           <!-- Sleek Elevated Card Surface -->
+    <color name="bg_card_secondary">#15161D</color> <!-- Inner Card Stats Container -->
+    <color name="bg_card_stroke">#2D303E</color>    <!-- Subtle Border Stroke -->
+    <color name="bg_bottom_nav">#14151C</color>     <!-- Bottom Nav Bar Surface -->
 
     <!-- Dracula Accent Colors -->
     <color name="brand_primary">#BD93F9</color>         <!-- Dracula Purple -->
-    <color name="brand_primary_variant">#BD93F9</color> <!-- Dracula Purple -->
-    <color name="brand_primary_glow">#33BD93F9</color>  <!-- Dracula Purple 20% Alpha -->
+    <color name="brand_primary_variant">#A777EE</color> <!-- Deep Dracula Purple -->
+    <color name="brand_primary_glow">#25BD93F9</color>  <!-- Dracula Purple Subtle Glow -->
     <color name="brand_secondary">#8BE9FD</color>       <!-- Dracula Cyan -->
     <color name="brand_accent">#FF79C6</color>          <!-- Dracula Pink -->
     <color name="brand_yellow">#F1FA8C</color>          <!-- Dracula Yellow -->
 
     <!-- Status Colors -->
-    <!-- Safe (>= 80%): Dracula Green #50FA7B -->
+    <!-- Safe: Dracula Green #50FA7B -->
     <color name="status_safe">#50FA7B</color>
-    <color name="status_safe_bg">#2650FA7B</color>
+    <color name="status_safe_bg">#2050FA7B</color>
     <color name="status_safe_stroke">#6650FA7B</color>
 
-    <!-- Warning (75% - 79.9%): Dracula Orange #FFB86C -->
+    <!-- Warning: Dracula Orange #FFB86C -->
     <color name="status_warning">#FFB86C</color>
-    <color name="status_warning_bg">#26FFB86C</color>
+    <color name="status_warning_bg">#20FFB86C</color>
     <color name="status_warning_stroke">#66FFB86C</color>
 
-    <!-- Critical (< 75%): Dracula Red #FF5555 -->
+    <!-- Critical: Dracula Red #FF5555 -->
     <color name="status_critical">#FF5555</color>
-    <color name="status_critical_bg">#26FF5555</color>
+    <color name="status_critical_bg">#20FF5555</color>
     <color name="status_critical_stroke">#66FF5555</color>
 
     <!-- Informational: Dracula Cyan #8BE9FD -->
     <color name="status_info">#8BE9FD</color>
-    <color name="status_info_bg">#268BE9FD</color>
+    <color name="status_info_bg">#208BE9FD</color>
+
+    <!-- Level Bar Track (Remaining part as seen in screenshot) -->
+    <color name="level_bar_remaining">#E2E8F0</color>
 
     <!-- Typography -->
-    <color name="text_primary">#F8F8F2</color>   <!-- Dracula Foreground -->
-    <color name="text_secondary">#D6D6DC</color> <!-- Soft Dracula Foreground -->
+    <color name="text_primary">#F8F8F2</color>   <!-- Dracula Foreground (White) -->
+    <color name="text_secondary">#8B9BB4</color> <!-- Muted Blue-Gray Secondary -->
     <color name="text_muted">#6272A4</color>     <!-- Dracula Comment -->
-    <color name="text_inverse">#282A36</color>   <!-- Dracula Background -->
+    <color name="text_inverse">#12131A</color>   <!-- Inverted Dark Text -->
 
     <!-- Common UI -->
-    <color name="divider">#44475A</color>
+    <color name="divider">#252733</color>
     <color name="transparent">#00000000</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>

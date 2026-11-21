@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -54,6 +53,7 @@ class AttendanceFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = AttendanceAdapter { course ->
+            // Optional: tapping opens details sheet
             val sheet = BunkCalculatorBottomSheet(allCourses, course.courseName)
             sheet.show(parentFragmentManager, "BunkCalcSheet")
         }
@@ -72,17 +72,12 @@ class AttendanceFragment : Fragment() {
                 val res = repository.refreshAttendance()
                 binding.swipeRefresh.isRefreshing = false
                 if (res.isSuccess) {
-                    Snackbar.make(binding.root, "Attendance synced with CMS!", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "Attendance synced from CMS!", Snackbar.LENGTH_SHORT).show()
                 } else {
                     val msg = res.exceptionOrNull()?.message ?: "Attendance sync failed."
                     Snackbar.make(binding.root, msg, Snackbar.LENGTH_SHORT).show()
                 }
             }
-        }
-
-        binding.btnOpenPlanner.setOnClickListener {
-            val sheet = BunkCalculatorBottomSheet(allCourses)
-            sheet.show(parentFragmentManager, "BunkCalcSheet")
         }
 
         binding.chipGroupAttendance.setOnCheckedStateChangeListener { _, checkedIds ->
@@ -105,43 +100,21 @@ class AttendanceFragment : Fragment() {
         if (courses.isEmpty()) {
             binding.emptyAttendanceView.visibility = View.VISIBLE
             binding.rvAttendance.visibility = View.GONE
-            binding.tvHeroPercentage.text = "0.0%"
-            binding.tvStatSafeCount.text = "0 Safe"
-            binding.tvStatCriticalCount.text = "0 Critical"
+            binding.tvAttendanceSubtitle.text = "No records cached"
             return
         }
 
         binding.emptyAttendanceView.visibility = View.GONE
         binding.rvAttendance.visibility = View.VISIBLE
 
-        // Overall Weighted Attendance Calculation
-        val totalAttended = courses.sumOf { it.present }
-        val totalLectures = courses.sumOf { it.total }
-        val overallPct = if (totalLectures > 0) (totalAttended / totalLectures) * 100.0 else 0.0
-
-        binding.tvHeroPercentage.text = String.format("%.2f%%", overallPct)
-
-        val criticalCount = courses.count { it.isCritical }
-        val safeCount = courses.count { it.isSafe }
-
-        binding.tvStatSafeCount.text = "$safeCount Safe (≥80%)"
-        binding.tvStatCriticalCount.text = "$criticalCount Critical (<75%)"
-
-        if (overallPct >= 80.0) {
-            binding.tvHeroPercentage.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_safe))
-        } else if (overallPct >= 75.0) {
-            binding.tvHeroPercentage.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_warning))
-        } else {
-            binding.tvHeroPercentage.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_critical))
-        }
-
         val lastSync = prefs.lastSyncTimestamp
-        if (lastSync > 0) {
+        val timeStr = if (lastSync > 0) {
             val sdf = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
-            binding.tvLastSyncAttendance.text = "Last updated: ${sdf.format(Date(lastSync))}"
+            "Synced ${sdf.format(Date(lastSync))}"
         } else {
-            binding.tvLastSyncAttendance.text = "Cached on device"
+            "Cached on device"
         }
+        binding.tvAttendanceSubtitle.text = "${courses.size} courses enrolled · $timeStr"
 
         filterCourses(binding.chipGroupAttendance.checkedChipId)
     }
@@ -149,7 +122,7 @@ class AttendanceFragment : Fragment() {
     private fun filterCourses(chipId: Int?) {
         val filtered = when (chipId) {
             R.id.chipCritical -> allCourses.filter { it.isCritical }
-            R.id.chipSafe -> allCourses.filter { it.isSafe }
+            R.id.chipSafe -> allCourses.filter { !it.isCritical }
             else -> allCourses
         }
         adapter.submitList(filtered)
@@ -158,7 +131,7 @@ class AttendanceFragment : Fragment() {
     private fun refreshData() {
         binding.swipeRefresh.isRefreshing = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val res = repository.refreshAll(isForce = true)
+            val res = repository.refreshAttendance()
             binding.swipeRefresh.isRefreshing = false
             if (!res.isSuccess) {
                 val msg = res.exceptionOrNull()?.message ?: "Sync failed."

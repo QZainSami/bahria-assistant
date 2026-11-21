@@ -14,7 +14,7 @@ import com.bahria.portal.data.model.NotificationItem
         Assignment::class,
         NotificationItem::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

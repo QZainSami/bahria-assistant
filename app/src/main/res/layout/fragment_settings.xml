@@ -11,27 +11,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"
             android:fontFamily="sans-serif-black"
             android:text="@string/settings_title"
             android:textColor="@color/text_primary"
-            android:textSize="22sp" />
+            android:textSize="18sp" />
 
         <!-- User Profile Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="3dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="2dp"
             app:strokeColor="@color/bg_card_stroke"
             app:strokeWidth="1dp">
 
@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -47,16 +47,16 @@
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/account_info"
                     android:textColor="@color/brand_primary_variant"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/tvSettingsEnrollment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="3dp"
                     android:fontFamily="sans-serif-black"
                     android:textColor="@color/text_primary"
-                    android:textSize="18sp"
+                    android:textSize="16sp"
                     tools:text="02-134242-111" />
 
                 <TextView
@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     tools:text="Karachi Campus • Student" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -74,10 +74,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="3dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="2dp"
             app:strokeColor="@color/bg_card_stroke"
             app:strokeWidth="1dp">
 
@@ -85,16 +85,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="10dp"
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/sync_settings"
                     android:textColor="@color/brand_primary_variant"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
                 <!-- Auto-Check Toggle -->
                 <LinearLayout
@@ -106,7 +106,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="12dp"
+                        android:layout_marginEnd="10dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -116,7 +116,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/auto_check_title"
                             android:textColor="@color/text_primary"
-                            android:textSize="15sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -124,7 +124,7 @@
                             android:layout_marginTop="2dp"
                             android:text="@string/auto_check_desc"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <com.google.android.material.materialswitch.MaterialSwitch
@@ -136,8 +136,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
                     android:background="@color/divider" />
 
                 <!-- Push Notifications Toggle -->
@@ -150,7 +150,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="12dp"
+                        android:layout_marginEnd="10dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -160,7 +160,7 @@
                             android:fontFamily="sans-serif-medium"
                             android:text="@string/notifications_enable_title"
                             android:textColor="@color/text_primary"
-                            android:textSize="15sp" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -168,7 +168,7 @@
                             android:layout_marginTop="2dp"
                             android:text="@string/notifications_enable_desc"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
                     </LinearLayout>
 
                     <com.google.android.material.materialswitch.MaterialSwitch
@@ -180,23 +180,23 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
                     android:background="@color/divider" />
 
                 <!-- Check Frequency Interval -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="6dp"
+                    android:layout_marginBottom="4dp"
                     android:text="@string/sync_interval_title"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
                 <Spinner
                     android:id="@+id/spinnerInterval"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="44dp"
                     android:background="@drawable/bg_card_modern"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
@@ -208,9 +208,9 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             app:cardBackgroundColor="@color/status_warning_bg"
-            app:cardCornerRadius="18dp"
+            app:cardCornerRadius="14dp"
             app:strokeColor="@color/status_warning_stroke"
             app:strokeWidth="1dp">
 
@@ -218,7 +218,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -227,9 +227,9 @@
                     android:orientation="horizontal">
 
                     <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_marginEnd="10dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="8dp"
                         android:src="@drawable/ic_battery"
                         tools:ignore="ContentDescription" />
 
@@ -239,28 +239,28 @@
                         android:fontFamily="sans-serif-black"
                         android:text="@string/battery_optimization_title"
                         android:textColor="@color/status_warning"
-                        android:textSize="15sp" />
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="10dp"
                     android:lineSpacingExtra="2dp"
                     android:text="@string/battery_optimization_desc"
                     android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBatterySettings"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="42dp"
                     android:text="@string/btn_fix_battery"
                     android:textColor="@color/status_warning"
                     app:backgroundTint="@color/status_warning_bg"
-                    app:cornerRadius="12dp"
+                    app:cornerRadius="10dp"
                     app:strokeColor="@color/status_warning_stroke"
                     app:strokeWidth="1dp" />
             </LinearLayout>
@@ -276,39 +276,44 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnForceSync"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="44dp"
                 android:layout_marginBottom="8dp"
                 android:text="@string/btn_force_sync"
                 android:textAllCaps="false"
                 android:textColor="@color/bg_main"
+                android:textSize="13sp"
                 app:backgroundTint="@color/brand_primary"
-                app:cornerRadius="14dp"
+                app:cornerRadius="10dp"
                 app:icon="@drawable/ic_refresh"
+                app:iconSize="16dp"
                 app:iconTint="@color/bg_main" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClearCache"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="44dp"
                 android:text="@string/btn_clear_cache"
                 android:textAllCaps="false"
                 android:textColor="@color/text_secondary"
-                app:cornerRadius="14dp"
+                android:textSize="13sp"
+                app:cornerRadius="10dp"
                 app:strokeColor="@color/bg_card_stroke" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="44dp"
                 android:layout_marginTop="8dp"
                 android:text="@string/btn_logout"
                 android:textAllCaps="false"
                 android:textColor="@color/status_critical"
+                android:textSize="13sp"
                 app:backgroundTint="@color/status_critical_bg"
-                app:cornerRadius="14dp"
+                app:cornerRadius="10dp"
                 app:icon="@drawable/ic_logout"
+                app:iconSize="16dp"
                 app:iconTint="@color/status_critical" />
         </LinearLayout>
 
@@ -316,21 +321,21 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:gravity="center"
             android:text="@string/app_version"
             android:textColor="@color/text_muted"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:layout_marginBottom="24dp"
             android:gravity="center"
             android:text="@string/app_credits"
             android:textColor="@color/text_muted"
-            android:textSize="11sp" />
+            android:textSize="10sp" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

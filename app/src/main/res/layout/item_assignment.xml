@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="8dp"
+    android:layout_marginStart="14dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="14dp"
+    android:layout_marginBottom="6dp"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="18dp"
-    app:cardElevation="3dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
     app:strokeColor="@color/bg_card_stroke"
     app:strokeWidth="1dp">
 
@@ -18,8 +18,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
+        <!-- Header: Title and Countdown / Status Badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -27,11 +28,11 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginEnd="10dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="8dp"
                 android:src="@drawable/ic_assignment"
-                app:tint="@color/brand_primary_variant"
+                app:tint="@color/brand_primary"
                 tools:ignore="ContentDescription" />
 
             <TextView
@@ -41,7 +42,7 @@
                 android:layout_weight="1"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/text_primary"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 tools:text="Complex Computing Problem" />
 
             <!-- Remaining Time Badge -->
@@ -51,33 +52,35 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_status_warning"
                 android:fontFamily="sans-serif-bold"
-                android:paddingStart="10dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="4dp"
+                android:paddingStart="8dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="3dp"
                 android:textColor="@color/status_warning"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 tools:text="1 day remaining" />
         </LinearLayout>
 
+        <!-- Course Name -->
         <TextView
             android:id="@+id/tvAssignmentCourse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="2dp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/text_secondary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             tools:text="Design &amp; Analysis of Algorithms" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:background="@color/divider" />
 
+        <!-- Footer Row: Due Date & Direct Download Button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,9 +88,9 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="6dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="5dp"
                 android:src="@drawable/ic_schedule"
                 app:tint="@color/text_muted"
                 tools:ignore="ContentDescription" />
@@ -98,17 +101,28 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 tools:text="Due: 15 Dec 2026 - 11:55 PM" />
 
-            <TextView
-                android:id="@+id/tvStatusTag"
+            <!-- Direct Download Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownloadAssignment"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-bold"
-                android:textColor="@color/status_safe"
-                android:textSize="12sp"
-                tools:text="Pending" />
+                android:layout_height="32dp"
+                android:minHeight="32dp"
+                android:minWidth="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Download"
+                android:textAllCaps="false"
+                android:textColor="@color/bg_main"
+                android:textSize="11sp"
+                app:backgroundTint="@color/brand_secondary"
+                app:cornerRadius="8dp"
+                app:icon="@drawable/ic_download"
+                app:iconSize="13dp"
+                app:iconTint="@color/bg_main" />
         </LinearLayout>
 
     </LinearLayout>

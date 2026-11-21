@@ -15,6 +15,8 @@ data class Assignment(
     val dueDateString: String,
     val dueTimestamp: Long = 0L,
     val status: String = "Pending", // "Pending", "Submitted", "Overdue"
+    val downloadUrl: String = "",
+    val fileName: String = "",
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     val isPending: Boolean

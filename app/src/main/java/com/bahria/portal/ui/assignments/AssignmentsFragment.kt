@@ -1,12 +1,15 @@
 package com.bahria.portal.ui.assignments
 
+import android.content.Intent
+import android.media.MediaScannerConnection
 import android.os.Bundle
+import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +21,7 @@ import com.bahria.portal.data.repository.PortalRepository
 import com.bahria.portal.databinding.FragmentAssignmentsBinding
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.io.File
 
 class AssignmentsFragment : Fragment() {
 
@@ -49,7 +53,9 @@ class AssignmentsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = AssignmentsAdapter()
+        adapter = AssignmentsAdapter { assignment ->
+            downloadAssignment(assignment)
+        }
         binding.rvAssignments.layoutManager = LinearLayoutManager(requireContext())
         binding.rvAssignments.adapter = adapter
     }
@@ -100,29 +106,13 @@ class AssignmentsFragment : Fragment() {
 
     private fun updateUI(list: List<Assignment>) {
         val pendingCount = list.count { it.isPending }
-        binding.cardAssignmentBanner.visibility = View.VISIBLE
 
         if (pendingCount > 0) {
-            binding.tvBannerText.text = "Found $pendingCount pending assignment(s)"
-            binding.cardAssignmentBanner.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.bg_card))
-            binding.cardAssignmentBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.status_safe_stroke)
-            binding.tvBannerText.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_safe))
-            binding.ivBannerIcon.setImageResource(R.drawable.ic_check_circle)
-            binding.ivBannerIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.status_safe))
+            binding.tvAssignmentsSubtitle.text = "$pendingCount pending assignment(s) · Action needed"
         } else if (list.isNotEmpty()) {
-            binding.tvBannerText.text = "No pending assignments! 🎉"
-            binding.cardAssignmentBanner.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.bg_card))
-            binding.cardAssignmentBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.brand_primary)
-            binding.tvBannerText.setTextColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
-            binding.ivBannerIcon.setImageResource(R.drawable.ic_check_circle)
-            binding.ivBannerIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.brand_primary))
+            binding.tvAssignmentsSubtitle.text = "All assignments submitted! 🎉"
         } else {
-            binding.tvBannerText.text = "No assignments loaded yet"
-            binding.cardAssignmentBanner.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.bg_card))
-            binding.cardAssignmentBanner.strokeColor = ContextCompat.getColor(requireContext(), R.color.bg_card_stroke)
-            binding.tvBannerText.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary))
-            binding.ivBannerIcon.setImageResource(R.drawable.ic_assignment)
-            binding.ivBannerIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.brand_secondary))
+            binding.tvAssignmentsSubtitle.text = "No assignments recorded on LMS"
         }
 
         filterAssignments(binding.chipGroupAssignments.checkedChipId)
@@ -132,7 +122,7 @@ class AssignmentsFragment : Fragment() {
         var filtered = when (chipId) {
             R.id.chipSubmitted -> allAssignments.filter { it.isSubmitted }
             R.id.chipAllAssignments -> allAssignments
-            else -> allAssignments.filter { it.isPending } // default is pending
+            else -> allAssignments.filter { it.isPending }
         }
 
         if (searchQuery.isNotBlank()) {
@@ -153,10 +143,83 @@ class AssignmentsFragment : Fragment() {
         }
     }
 
+    private fun downloadAssignment(assignment: Assignment) {
+        val safeName = if (assignment.fileName.isNotBlank()) {
+            assignment.fileName
+        } else {
+            "${assignment.title.replace("[^a-zA-Z0-9.-]".toRegex(), "_")}.pdf"
+        }
+
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            ?: requireContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            ?: requireContext().filesDir
+
+        val destFile = File(downloadsDir, safeName)
+
+        val progressSnackbar = Snackbar.make(
+            binding.root,
+            "Downloading $safeName...",
+            Snackbar.LENGTH_INDEFINITE
+        )
+        progressSnackbar.show()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val res = repository.downloadAssignmentFile(assignment, destFile)
+            progressSnackbar.dismiss()
+
+            if (res.isSuccess) {
+                // Register in device media store
+                MediaScannerConnection.scanFile(
+                    requireContext().applicationContext,
+                    arrayOf(destFile.absolutePath),
+                    null,
+                    null
+                )
+
+                Snackbar.make(
+                    binding.root,
+                    "Saved to Downloads: $safeName",
+                    Snackbar.LENGTH_LONG
+                ).setAction("OPEN") {
+                    openDownloadedFile(destFile)
+                }.show()
+            } else {
+                val err = res.exceptionOrNull()?.message ?: "Download failed"
+                Snackbar.make(binding.root, "Error: $err", Snackbar.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun openDownloadedFile(file: File) {
+        try {
+            val context = requireContext()
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+
+            val mimeType = if (file.name.endsWith(".pdf", ignoreCase = true)) {
+                "application/pdf"
+            } else {
+                "text/plain"
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(Intent.createChooser(intent, "Open Assignment"))
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Downloaded file saved in Downloads folder.", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
     private fun refreshData() {
         binding.swipeRefreshAssignments.isRefreshing = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val res = repository.refreshAll(isForce = true)
+            val res = repository.refreshAssignments()
             binding.swipeRefreshAssignments.isRefreshing = false
             if (!res.isSuccess) {
                 val msg = res.exceptionOrNull()?.message ?: "Sync failed."

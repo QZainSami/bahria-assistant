@@ -11,7 +11,7 @@ object MockDataProvider {
         return listOf(
             CourseAttendance(
                 courseName = "Artificial Intelligence",
-                courseCode = "CS-411",
+                courseCode = "CSC 412",
                 present = 19.0,
                 absent = 8.0,
                 total = 27.0,
@@ -19,17 +19,8 @@ object MockDataProvider {
                 updatedAt = now
             ),
             CourseAttendance(
-                courseName = "Computer Architecture",
-                courseCode = "CS-302",
-                present = 12.0,
-                absent = 8.0,
-                total = 20.0,
-                percentage = 60.00,
-                updatedAt = now
-            ),
-            CourseAttendance(
                 courseName = "Theory of Automata",
-                courseCode = "CS-314",
+                courseCode = "CSC 315",
                 present = 26.0,
                 absent = 7.0,
                 total = 33.0,
@@ -37,8 +28,17 @@ object MockDataProvider {
                 updatedAt = now
             ),
             CourseAttendance(
+                courseName = "Computer Architecture",
+                courseCode = "CSC 302",
+                present = 12.0,
+                absent = 8.0,
+                total = 20.0,
+                percentage = 60.00,
+                updatedAt = now
+            ),
+            CourseAttendance(
                 courseName = "Operating Systems",
-                courseCode = "CS-312",
+                courseCode = "CSC 312",
                 present = 31.0,
                 absent = 1.0,
                 total = 32.0,
@@ -47,7 +47,7 @@ object MockDataProvider {
             ),
             CourseAttendance(
                 courseName = "Computer Architecture Lab",
-                courseCode = "CS-302L",
+                courseCode = "CSC 302-L",
                 present = 19.0,
                 absent = 5.0,
                 total = 24.0,
@@ -56,7 +56,7 @@ object MockDataProvider {
             ),
             CourseAttendance(
                 courseName = "Artificial Intelligence Lab",
-                courseCode = "CS-411L",
+                courseCode = "CSC 412-L",
                 present = 20.0,
                 absent = 2.0,
                 total = 22.0,
@@ -65,7 +65,7 @@ object MockDataProvider {
             ),
             CourseAttendance(
                 courseName = "Design & Analysis of Algorithms",
-                courseCode = "CS-310",
+                courseCode = "CSC 310",
                 present = 28.0,
                 absent = 4.0,
                 total = 32.0,
@@ -86,33 +86,41 @@ object MockDataProvider {
                 dueDateString = "15 Dec 2026 - 11:55 PM",
                 dueTimestamp = now + (24 * oneDay),
                 status = "Pending",
+                downloadUrl = "https://lms.bahria.edu.pk/files/DAA_Complex_Problem_2026.pdf",
+                fileName = "DAA_Complex_Computing_Problem.pdf",
                 updatedAt = now
             ),
             Assignment(
                 id = "cs312l_ass10",
-                title = "Assignment 10",
+                title = "Assignment 10: Multithreading & POSIX",
                 courseName = "Operating Systems Lab",
                 dueDateString = "22 Nov 2026 - 11:55 PM",
                 dueTimestamp = now + (1 * oneDay),
                 status = "Pending",
+                downloadUrl = "https://lms.bahria.edu.pk/files/OS_Lab10_Tasks.pdf",
+                fileName = "OS_Lab10_Multithreading.pdf",
                 updatedAt = now
             ),
             Assignment(
                 id = "cs411_ass2",
-                title = "Ass#2",
+                title = "Ass#2: A* Search & Minimax Alpha-Beta",
                 courseName = "Artificial Intelligence",
                 dueDateString = "25 Nov 2026 - 03:00 PM",
                 dueTimestamp = now + (4 * oneDay),
                 status = "Pending",
+                downloadUrl = "https://lms.bahria.edu.pk/files/AI_Assignment_2.pdf",
+                fileName = "AI_Assignment_2_Search.pdf",
                 updatedAt = now
             ),
             Assignment(
                 id = "cs302l_task7",
-                title = "Lab Task 7: Memory Hierarchy",
+                title = "Lab Task 7: Memory Hierarchy & Cache Mapping",
                 courseName = "Computer Architecture Lab",
                 dueDateString = "10 Nov 2026 - 11:55 PM",
                 dueTimestamp = now - (11 * oneDay),
                 status = "Submitted",
+                downloadUrl = "https://lms.bahria.edu.pk/files/CA_Lab7_Manual.pdf",
+                fileName = "CA_Lab7_MemoryHierarchy.pdf",
                 updatedAt = now
             ),
             Assignment(
@@ -122,6 +130,8 @@ object MockDataProvider {
                 dueDateString = "05 Nov 2026 - 10:00 AM",
                 dueTimestamp = now - (16 * oneDay),
                 status = "Submitted",
+                downloadUrl = "https://lms.bahria.edu.pk/files/TOA_Grammar_Tasks.pdf",
+                fileName = "TOA_PDA_Grammar_Tasks.pdf",
                 updatedAt = now
             )
         )

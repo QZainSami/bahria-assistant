@@ -76,6 +76,6 @@
     <string name="calc_title">Bunk &amp; Attendance Goal Planner</string>
     <string name="calc_desc">Calculate how many classes you can skip or need to attend to maintain 75% eligibility.</string>
     <string name="target_percentage" formatted="false">Target Attendance (%):</string>
-    <string name="calc_result_safe">You can safely skip %1$d more class(es) while staying above 75%.</string>
-    <string name="calc_result_warning">⚠️ You need to attend the next %1$d consecutive class(es) without absence to reach 75%!</string>
+    <string name="calc_result_safe">You can safely skip %1$d more class(es) while staying above 75%%.</string>
+    <string name="calc_result_warning">⚠️ You need to attend the next %1$d consecutive class(es) without absence to reach 75%%!</string>
 </resources>

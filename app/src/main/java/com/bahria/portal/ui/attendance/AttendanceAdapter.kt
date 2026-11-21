@@ -1,6 +1,5 @@
 package com.bahria.portal.ui.attendance
 
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -10,9 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bahria.portal.R
 import com.bahria.portal.data.model.CourseAttendance
 import com.bahria.portal.databinding.ItemCourseAttendanceBinding
+import java.util.Locale
 
 class AttendanceAdapter(
-    private val onCalculateClicked: (CourseAttendance) -> Unit
+    private val onCourseClicked: ((CourseAttendance) -> Unit)? = null
 ) : ListAdapter<CourseAttendance, AttendanceAdapter.ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -32,58 +32,44 @@ class AttendanceAdapter(
         fun bind(course: CourseAttendance) {
             val context = binding.root.context
             binding.tvCourseName.text = course.courseName
-            binding.tvCourseCode.text = if (course.courseCode.isNotBlank()) course.courseCode else "Course Unit"
 
-            binding.tvPresentCount.text = String.format("%.1f", course.present)
-            binding.tvAbsentCount.text = String.format("%.1f", course.absent)
-            binding.tvTotalCount.text = String.format("%.1f", course.total)
+            // Subline: CSC 412 · 3 Cr Hr · 19/27 hrs
+            val presentInt = course.present.toInt()
+            val totalInt = course.total.toInt()
+            binding.tvCourseSubline.text = "${course.displayCode} · ${course.creditHours} Cr Hr · $presentInt/$totalInt hrs"
 
-            val pct = course.percentage
-            binding.tvPercentage.text = String.format("%.2f%%", pct)
-            binding.pbAttendance.progress = pct.toInt()
+            // Current rate formatting
+            binding.tvCurrentRate.text = String.format(Locale.ENGLISH, "%.1f%%", course.percentage)
 
-            // Dynamic Styling based on Threshold
-            when {
-                course.isCritical -> {
-                    // < 75%
-                    binding.pillPercentage.setBackgroundResource(R.drawable.bg_status_critical)
-                    binding.ivStatusIcon.setImageResource(R.drawable.ic_warning)
-                    binding.ivStatusIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_critical))
-                    binding.tvPercentage.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
-                    binding.pbAttendance.progressTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_critical))
+            // Max allowed and Used / left
+            binding.tvMaxAllowed.text = "${course.maxAllowedAbsentHours}h"
+            binding.tvUsedLeft.text = "${course.usedAbsentHours}h / ${course.leftAbsentHours}h"
 
-                    val needed = course.classesNeededFor75
-                    binding.tvBunkAdvice.text = "🚨 Critical! Attend next $needed classes to reach 75%"
-                    binding.tvBunkAdvice.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
-                }
-                course.isWarning -> {
-                    // 75% - 79.9%
-                    binding.pillPercentage.setBackgroundResource(R.drawable.bg_status_warning)
-                    binding.ivStatusIcon.setImageResource(R.drawable.ic_warning)
-                    binding.ivStatusIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_warning))
-                    binding.tvPercentage.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
-                    binding.pbAttendance.progressTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_warning))
+            // Level Bar and Top Badge Styling
+            if (course.isCritical) {
+                // Critical (< 75%)
+                val needed = course.hoursNeededFor75
+                binding.tvBadgeStatus.text = "${needed}h Required"
+                binding.tvBadgeStatus.setBackgroundResource(R.drawable.bg_badge_required)
+                binding.tvBadgeStatus.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
 
-                    val safe = course.safeBunksAvailable
-                    binding.tvBunkAdvice.text = if (safe > 0) "⚠️ Safe to miss $safe class(es)" else "⚠️ Warning: Don't miss next class"
-                    binding.tvBunkAdvice.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
-                }
-                else -> {
-                    // >= 80%
-                    binding.pillPercentage.setBackgroundResource(R.drawable.bg_status_safe)
-                    binding.ivStatusIcon.setImageResource(R.drawable.ic_check_circle)
-                    binding.ivStatusIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_safe))
-                    binding.tvPercentage.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
-                    binding.pbAttendance.progressTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_safe))
+                binding.pbLevelBar.progressDrawable = ContextCompat.getDrawable(context, R.drawable.level_bar_progress_red)
+                binding.tvCurrentRate.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
+            } else {
+                // Safe or Warning (>= 75%)
+                val left = course.leftAbsentHours
+                binding.tvBadgeStatus.text = "${left}h Left"
+                binding.tvBadgeStatus.setBackgroundResource(R.drawable.bg_badge_left)
+                binding.tvBadgeStatus.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
 
-                    val safe = course.safeBunksAvailable
-                    binding.tvBunkAdvice.text = "✅ Safe to miss $safe class(es)"
-                    binding.tvBunkAdvice.setTextColor(ContextCompat.getColor(context, R.color.status_safe))
-                }
+                binding.pbLevelBar.progressDrawable = ContextCompat.getDrawable(context, R.drawable.level_bar_progress_green)
+                binding.tvCurrentRate.setTextColor(ContextCompat.getColor(context, R.color.brand_secondary))
             }
 
-            binding.btnCardCalc.setOnClickListener {
-                onCalculateClicked(course)
+            binding.pbLevelBar.progress = course.percentage.toInt().coerceIn(0, 100)
+
+            binding.root.setOnClickListener {
+                onCourseClicked?.invoke(course)
             }
         }
     }

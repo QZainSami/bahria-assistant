@@ -18,7 +18,7 @@
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
+            android:minHeight="52dp"
             android:background="@color/bg_surface"
             app:contentInsetStart="0dp"
             app:contentInsetEnd="0dp"
@@ -26,18 +26,18 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="52dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
 
+                <!-- Custom App Logo -->
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:layout_marginEnd="12dp"
-                    android:src="@drawable/ic_school"
-                    app:tint="@color/brand_primary"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_app_logo"
                     tools:ignore="ContentDescription" />
 
                 <LinearLayout
@@ -53,7 +53,7 @@
                         android:fontFamily="sans-serif-black"
                         android:text="@string/app_name"
                         android:textColor="@color/text_primary"
-                        android:textSize="18sp" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:id="@+id/tvAppSubtitle"
@@ -61,14 +61,14 @@
                         android:layout_height="wrap_content"
                         android:text="@string/app_subtitle"
                         android:textColor="@color/text_muted"
-                        android:textSize="11sp" />
+                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <!-- Quick Sync Button -->
                 <ImageButton
                     android:id="@+id/btnQuickSync"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Refresh All"
                     android:src="@drawable/ic_refresh"

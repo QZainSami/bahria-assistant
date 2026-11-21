@@ -28,12 +28,9 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:background="@drawable/bg_pill_accent"
-                    android:padding="16dp"
-                    android:src="@drawable/ic_school"
-                    app:tint="@color/brand_primary_variant"
+                    android:layout_width="76dp"
+                    android:layout_height="76dp"
+                    android:src="@drawable/ic_app_logo"
                     tools:ignore="ContentDescription" />
 
                 <TextView
