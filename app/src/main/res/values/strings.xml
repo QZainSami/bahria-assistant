@@ -1,0 +1,81 @@
+<resources>
+    <string name="app_name">Bahria Portal</string>
+    <string name="app_subtitle">CMS &amp; LMS Companion</string>
+    
+    <!-- Navigation Tabs -->
+    <string name="tab_attendance">Attendance</string>
+    <string name="tab_assignments">Assignments</string>
+    <string name="tab_notifications">Alerts</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in with your Bahria University CMS credentials</string>
+    <string name="enrollment_id_hint">Enrollment ID (e.g. 02-134242-111)</string>
+    <string name="password_hint">Portal Password</string>
+    <string name="campus_select_hint">Select Campus</string>
+    <string name="user_type_hint">User Role</string>
+    <string name="remember_me">Remember credentials on this device</string>
+    <string name="btn_login">Sign In to Portal</string>
+    <string name="btn_demo_mode">Explore Demo Mode</string>
+    <string name="login_security_note">Your credentials are encrypted &amp; stored strictly on your device.</string>
+
+    <!-- Attendance Screen -->
+    <string name="attendance_overview">Attendance Overview</string>
+    <string name="overall_attendance">Overall Attendance</string>
+    <string name="filter_all">All Courses</string>
+    <string name="filter_critical" formatted="false">Critical (&lt; 75%)</string>
+    <string name="filter_safe" formatted="false">Safe (≥ 80%)</string>
+    <string name="present_label">Present</string>
+    <string name="absent_label">Absent</string>
+    <string name="total_label">Total</string>
+    <string name="percentage_label">Percentage</string>
+    <string name="bunk_calc_action">Bunk Calculator</string>
+    <string name="last_updated">Last updated: %1$s</string>
+    <string name="fetching_attendance">Syncing attendance with CMS…</string>
+    <string name="empty_attendance">No course records found. Pull down to refresh.</string>
+
+    <!-- Assignments Screen -->
+    <string name="assignments_title">LMS Assignments</string>
+    <string name="pending_assignments">Pending Assignments</string>
+    <string name="completed_assignments">Completed / Graded</string>
+    <string name="search_assignments_hint">Search assignment or course…</string>
+    <string name="due_date_format">Due: %1$s</string>
+    <string name="days_remaining">%1$s remaining</string>
+    <string name="hours_remaining">%1$s hours remaining</string>
+    <string name="overdue">Overdue</string>
+    <string name="due_today">Due Today!</string>
+    <string name="fetching_assignments">Fetching assignments from LMS…</string>
+    <string name="empty_assignments">No pending assignments. You\'re all caught up! 🎉</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_title">Notification Center</string>
+    <string name="clear_all">Clear All</string>
+    <string name="empty_notifications">No notifications yet. New assignments and attendance changes will appear here.</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">App Settings</string>
+    <string name="account_info">Portal Account</string>
+    <string name="sync_settings">Background Sync &amp; Alerts</string>
+    <string name="auto_check_title">Auto-Check in Background</string>
+    <string name="auto_check_desc">Regularly checks CMS &amp; LMS for new attendance marks and assignments</string>
+    <string name="notifications_enable_title">Push Notifications</string>
+    <string name="notifications_enable_desc">Notify when assignments are added or attendance changes</string>
+    <string name="sync_interval_title">Check Frequency</string>
+    <string name="battery_optimization_title">Battery Optimization Active</string>
+    <string name="battery_optimization_desc">Background updates may be delayed by Android. Tap to allow unrestricted background activity.</string>
+    <string name="btn_fix_battery">Disable Battery Optimization</string>
+    <string name="cache_management">Local Storage &amp; Cache</string>
+    <string name="btn_force_sync">Force Full Sync Now</string>
+    <string name="btn_clear_cache">Clear Cached Data</string>
+    <string name="btn_logout">Log Out</string>
+    <string name="app_version">Version 2.0 • Modernized &amp; High-Speed</string>
+    <string name="app_credits">Built with ❤️ for students at Bahria University</string>
+
+    <!-- Calculator Bottom Sheet -->
+    <string name="calc_title">Bunk &amp; Attendance Goal Planner</string>
+    <string name="calc_desc">Calculate how many classes you can skip or need to attend to maintain 75% eligibility.</string>
+    <string name="target_percentage" formatted="false">Target Attendance (%):</string>
+    <string name="calc_result_safe">You can safely skip %1$d more class(es) while staying above 75%.</string>
+    <string name="calc_result_warning">⚠️ You need to attend the next %1$d consecutive class(es) without absence to reach 75%!</string>
+</resources>
