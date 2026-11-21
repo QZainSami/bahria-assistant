@@ -180,12 +180,33 @@ class PortalAutomatorWebView(private val context: Context) {
                                             var due = cols[cols.length - 2].innerText.trim();
                                             var status = cols[cols.length - 1].innerText.trim();
                                             if (title && title.toLowerCase() !== 'title' && title.toLowerCase() !== 'assignment') {
+                                                var anchor = rows[i].querySelector("a[href*='download'], a[href*='assignment'], a[href*='.docx'], a[href*='.pdf'], a[href]") || rows[i].querySelector('a');
+                                                var link = anchor ? anchor.href : "";
+                                                var anchorText = anchor ? anchor.innerText.trim() : "";
+                                                var fileName = "";
+                                                if (/\.(docx|doc|pdf|zip|pptx|txt)$/i.test(anchorText)) {
+                                                    fileName = anchorText;
+                                                } else if (link) {
+                                                    var match = link.match(/[?&](?:file|filename|f)=([^&]+)/i);
+                                                    if (match) {
+                                                        try { fileName = decodeURIComponent(match[1]); } catch(e) { fileName = match[1]; }
+                                                    } else {
+                                                        var part = link.split('/').pop().split('?')[0];
+                                                        if (part.indexOf('.') !== -1) fileName = part;
+                                                    }
+                                                }
+                                                if (!fileName) {
+                                                    fileName = title.replace(/[^a-zA-Z0-9.-]/g, '_') + '.docx';
+                                                }
+
                                                 results.push({
                                                     id: (course + '_' + title).replace(/ /g, '_'),
                                                     title: title,
                                                     courseName: course,
                                                     dueDateString: due,
-                                                    status: status.toLowerCase().indexOf('submit') !== -1 ? 'Submitted' : 'Pending'
+                                                    status: status.toLowerCase().indexOf('submit') !== -1 ? 'Submitted' : 'Pending',
+                                                    downloadUrl: link,
+                                                    fileName: fileName
                                                 });
                                             }
                                         }

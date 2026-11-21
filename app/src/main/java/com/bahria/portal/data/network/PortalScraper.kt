@@ -256,8 +256,34 @@ class PortalScraper {
                     val status = if (isPending) "Pending" else "Submitted"
 
                     val dueTimestamp = Assignment.parseDate(dueDate)
-                    val link = row.select("a[href]").firstOrNull()?.attr("abs:href") ?: ""
-                    val fileName = if (link.isNotBlank() && !link.endsWith("/")) link.substringAfterLast("/") else "${title.replace(" ", "_")}.pdf"
+                    val anchor = row.select("a[href]").firstOrNull { a ->
+                        val text = a.text().lowercase()
+                        val href = a.attr("href").lowercase()
+                        text.endsWith(".docx") || text.endsWith(".doc") || text.endsWith(".pdf") ||
+                                href.contains("download") || href.contains("assignment") || href.contains(".docx") || href.contains(".pdf")
+                    } ?: row.select("a[href]").firstOrNull()
+
+                    val link = anchor?.attr("abs:href") ?: ""
+                    val anchorText = anchor?.text()?.trim() ?: ""
+
+                    var fileName = ""
+                    if (anchorText.matches(Regex(".*\\.(docx|doc|pdf|zip|pptx|txt)$", RegexOption.IGNORE_CASE))) {
+                        fileName = anchorText
+                    } else if (link.isNotBlank()) {
+                        val uri = android.net.Uri.parse(link)
+                        val paramFile = uri.getQueryParameter("file") ?: uri.getQueryParameter("filename") ?: uri.getQueryParameter("f")
+                        if (!paramFile.isNullOrBlank()) {
+                            fileName = paramFile
+                        } else {
+                            val lastSegment = link.substringAfterLast("/").substringBefore("?")
+                            if (lastSegment.contains(".")) {
+                                fileName = lastSegment
+                            }
+                        }
+                    }
+                    if (fileName.isBlank()) {
+                        fileName = "${title.replace("[^a-zA-Z0-9.-]".toRegex(), "_")}.docx"
+                    }
 
                     val item = Assignment(
                         id = "${course}_$title".replace(" ", "_"),
@@ -282,7 +308,8 @@ class PortalScraper {
 
     suspend fun downloadAssignmentFile(
         downloadUrl: String,
-        destinationFile: java.io.File
+        targetDir: java.io.File,
+        suggestedFileName: String
     ): Result<java.io.File> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
@@ -295,17 +322,86 @@ class PortalScraper {
                 return@withContext Result.failure(Exception("HTTP ${response.code}: Download failed"))
             }
             val body = response.body ?: return@withContext Result.failure(Exception("Empty file response"))
-            destinationFile.parentFile?.mkdirs()
-            destinationFile.outputStream().use { out ->
+
+            targetDir.mkdirs()
+
+            // 1. Try to extract filename from Content-Disposition header
+            val contentDisposition = response.header("Content-Disposition")
+            var resolvedName = extractFileNameFromDisposition(contentDisposition)
+
+            // 2. If not in header, use suggestedFileName or URL
+            if (resolvedName.isNullOrBlank()) {
+                resolvedName = suggestedFileName.ifBlank {
+                    downloadUrl.substringAfterLast("/").substringBefore("?").ifBlank { "assignment" }
+                }
+            }
+
+            // Clean filename of unsafe characters
+            resolvedName = resolvedName.replace("[\\\\/:*?\"<>|]".toRegex(), "_")
+
+            // Write to a temporary file first
+            val tempFile = java.io.File(targetDir, "download_${System.currentTimeMillis()}.tmp")
+            tempFile.outputStream().use { out ->
                 body.byteStream().use { input ->
                     input.copyTo(out)
                 }
             }
-            Result.success(destinationFile)
+
+            // 3. Inspect magic bytes & Content-Type to guarantee the extension matches the true file format!
+            val contentType = response.header("Content-Type")?.lowercase() ?: ""
+            val magicBytes = ByteArray(4)
+            val readBytes = tempFile.inputStream().use { it.read(magicBytes) }
+
+            val isZipOrDocx = readBytes >= 4 &&
+                    magicBytes[0] == 0x50.toByte() && magicBytes[1] == 0x4B.toByte() &&
+                    magicBytes[2] == 0x03.toByte() && magicBytes[3] == 0x04.toByte() // "PK\u0003\u0004"
+            val isPdf = readBytes >= 4 &&
+                    magicBytes[0] == 0x25.toByte() && magicBytes[1] == 0x50.toByte() &&
+                    magicBytes[2] == 0x44.toByte() && magicBytes[3] == 0x46.toByte() // "%PDF"
+
+            var finalExtension = if (resolvedName.contains(".")) resolvedName.substringAfterLast(".") else ""
+            if (isZipOrDocx) {
+                // If it's an Office Open XML (DOCX/PPTX/XLSX) or ZIP container
+                if (finalExtension.equals("pdf", ignoreCase = true) || finalExtension.isBlank()) {
+                    finalExtension = if (contentType.contains("presentation")) "pptx" else "docx"
+                }
+            } else if (isPdf) {
+                finalExtension = "pdf"
+            } else if (contentType.contains("officedocument.wordprocessingml") || contentType.contains("msword")) {
+                if (!finalExtension.equals("docx", ignoreCase = true) && !finalExtension.equals("doc", ignoreCase = true)) {
+                    finalExtension = "docx"
+                }
+            }
+
+            val baseName = if (resolvedName.contains(".")) resolvedName.substringBeforeLast(".") else resolvedName
+            val finalFileName = if (finalExtension.isNotBlank()) "$baseName.$finalExtension" else resolvedName
+            val finalFile = java.io.File(targetDir, finalFileName)
+
+            if (finalFile.exists()) {
+                finalFile.delete()
+            }
+            tempFile.renameTo(finalFile)
+
+            Result.success(finalFile)
         } catch (e: Exception) {
             Log.e(TAG, "File download failed: ${e.message}", e)
             Result.failure(e)
         }
+    }
+
+    private fun extractFileNameFromDisposition(header: String?): String? {
+        if (header.isNullOrBlank()) return null
+        val regex = Regex("filename\\*?=['\"]?(?:UTF-8'')?([^;'\"]+)", RegexOption.IGNORE_CASE)
+        val match = regex.find(header)
+        var name = match?.groupValues?.getOrNull(1)?.trim()
+        if (!name.isNullOrBlank()) {
+            return try {
+                java.net.URLDecoder.decode(name, "UTF-8").replace("\"", "").replace("'", "")
+            } catch (_: Exception) {
+                name.replace("\"", "").replace("'", "")
+            }
+        }
+        return null
     }
 
     private fun resolveInstituteCode(campus: String, doc: org.jsoup.nodes.Document): String {

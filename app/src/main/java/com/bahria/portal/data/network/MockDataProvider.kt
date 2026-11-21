@@ -86,8 +86,8 @@ object MockDataProvider {
                 dueDateString = "15 Dec 2026 - 11:55 PM",
                 dueTimestamp = now + (24 * oneDay),
                 status = "Pending",
-                downloadUrl = "https://lms.bahria.edu.pk/files/DAA_Complex_Problem_2026.pdf",
-                fileName = "DAA_Complex_Computing_Problem.pdf",
+                downloadUrl = "https://lms.bahria.edu.pk/files/DAA_Complex_Problem_2026.docx",
+                fileName = "DAA_Complex_Computing_Problem.docx",
                 updatedAt = now
             ),
             Assignment(
@@ -97,8 +97,8 @@ object MockDataProvider {
                 dueDateString = "22 Nov 2026 - 11:55 PM",
                 dueTimestamp = now + (1 * oneDay),
                 status = "Pending",
-                downloadUrl = "https://lms.bahria.edu.pk/files/OS_Lab10_Tasks.pdf",
-                fileName = "OS_Lab10_Multithreading.pdf",
+                downloadUrl = "https://lms.bahria.edu.pk/files/OS_Lab10_Tasks.docx",
+                fileName = "OS_Lab10_Multithreading.docx",
                 updatedAt = now
             ),
             Assignment(
@@ -108,8 +108,8 @@ object MockDataProvider {
                 dueDateString = "25 Nov 2026 - 03:00 PM",
                 dueTimestamp = now + (4 * oneDay),
                 status = "Pending",
-                downloadUrl = "https://lms.bahria.edu.pk/files/AI_Assignment_2.pdf",
-                fileName = "AI_Assignment_2_Search.pdf",
+                downloadUrl = "https://lms.bahria.edu.pk/files/AI_Assignment_2.docx",
+                fileName = "AI_Assignment_2_Search.docx",
                 updatedAt = now
             ),
             Assignment(
@@ -130,8 +130,8 @@ object MockDataProvider {
                 dueDateString = "05 Nov 2026 - 10:00 AM",
                 dueTimestamp = now - (16 * oneDay),
                 status = "Submitted",
-                downloadUrl = "https://lms.bahria.edu.pk/files/TOA_Grammar_Tasks.pdf",
-                fileName = "TOA_PDA_Grammar_Tasks.pdf",
+                downloadUrl = "https://lms.bahria.edu.pk/files/TOA_Grammar_Tasks.docx",
+                fileName = "TOA_PDA_Grammar_Tasks.docx",
                 updatedAt = now
             )
         )

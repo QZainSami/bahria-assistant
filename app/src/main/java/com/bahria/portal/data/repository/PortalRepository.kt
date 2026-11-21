@@ -264,13 +264,20 @@ class PortalRepository(private val context: Context) {
         prefs.lastSyncTimestamp = 0L
     }
 
-    suspend fun downloadAssignmentFile(assignment: Assignment, destFile: java.io.File): Result<java.io.File> = withContext(Dispatchers.IO) {
+    suspend fun downloadAssignmentFile(
+        assignment: Assignment,
+        targetDir: java.io.File,
+        suggestedFileName: String
+    ): Result<java.io.File> = withContext(Dispatchers.IO) {
         try {
             if (assignment.downloadUrl.isNotBlank() && assignment.downloadUrl.startsWith("http")) {
-                val res = scraper.downloadAssignmentFile(assignment.downloadUrl, destFile)
+                val res = scraper.downloadAssignmentFile(assignment.downloadUrl, targetDir, suggestedFileName)
                 if (res.isSuccess) return@withContext res
             }
             // Fallback / Offline Generator: Create clean official assignment brief document
+            val ext = if (suggestedFileName.contains(".")) suggestedFileName.substringAfterLast(".") else "docx"
+            val baseName = if (suggestedFileName.contains(".")) suggestedFileName.substringBeforeLast(".") else suggestedFileName
+            val destFile = java.io.File(targetDir, "$baseName.$ext")
             destFile.parentFile?.mkdirs()
             destFile.writeText(
                 """
@@ -281,7 +288,7 @@ class PortalRepository(private val context: Context) {
                 TITLE:       ${assignment.title}
                 DUE DATE:    ${assignment.dueDateString}
                 STATUS:      ${assignment.status}
-                FILE NAME:   ${assignment.fileName.ifBlank { destFile.name }}
+                FILE NAME:   ${destFile.name}
                 DOWNLOADED:  ${java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault()).format(java.util.Date())}
                 ================================================================================
                 

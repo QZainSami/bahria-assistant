@@ -144,44 +144,45 @@ class AssignmentsFragment : Fragment() {
     }
 
     private fun downloadAssignment(assignment: Assignment) {
-        val safeName = if (assignment.fileName.isNotBlank()) {
-            assignment.fileName
-        } else {
-            "${assignment.title.replace("[^a-zA-Z0-9.-]".toRegex(), "_")}.pdf"
+        val suggestedName = when {
+            assignment.fileName.isNotBlank() -> assignment.fileName
+            assignment.downloadUrl.isNotBlank() && assignment.downloadUrl.contains(".") -> {
+                assignment.downloadUrl.substringAfterLast("/").substringBefore("?")
+            }
+            else -> "${assignment.title.replace("[^a-zA-Z0-9.-]".toRegex(), "_")}.docx"
         }
 
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             ?: requireContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             ?: requireContext().filesDir
 
-        val destFile = File(downloadsDir, safeName)
-
         val progressSnackbar = Snackbar.make(
             binding.root,
-            "Downloading $safeName...",
+            "Downloading $suggestedName...",
             Snackbar.LENGTH_INDEFINITE
         )
         progressSnackbar.show()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val res = repository.downloadAssignmentFile(assignment, destFile)
+            val res = repository.downloadAssignmentFile(assignment, downloadsDir, suggestedName)
             progressSnackbar.dismiss()
 
             if (res.isSuccess) {
+                val downloadedFile = res.getOrThrow()
                 // Register in device media store
                 MediaScannerConnection.scanFile(
                     requireContext().applicationContext,
-                    arrayOf(destFile.absolutePath),
+                    arrayOf(downloadedFile.absolutePath),
                     null,
                     null
                 )
 
                 Snackbar.make(
                     binding.root,
-                    "Saved to Downloads: $safeName",
+                    "Saved to Downloads: ${downloadedFile.name}",
                     Snackbar.LENGTH_LONG
                 ).setAction("OPEN") {
-                    openDownloadedFile(destFile)
+                    openDownloadedFile(downloadedFile)
                 }.show()
             } else {
                 val err = res.exceptionOrNull()?.message ?: "Download failed"
@@ -199,20 +200,33 @@ class AssignmentsFragment : Fragment() {
                 file
             )
 
-            val mimeType = if (file.name.endsWith(".pdf", ignoreCase = true)) {
-                "application/pdf"
-            } else {
-                "text/plain"
+            val ext = file.extension.lowercase()
+            val mimeType = when (ext) {
+                "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                "doc" -> "application/msword"
+                "pdf" -> "application/pdf"
+                "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                "ppt" -> "application/vnd.ms-powerpoint"
+                "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                "xls" -> "application/vnd.ms-excel"
+                "zip" -> "application/zip"
+                "rar" -> "application/x-rar-compressed"
+                "txt" -> "text/plain"
+                else -> {
+                    val mapType = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+                    mapType ?: "*/*"
+                }
             }
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mimeType)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(Intent.createChooser(intent, "Open Assignment"))
         } catch (e: Exception) {
-            Snackbar.make(binding.root, "Downloaded file saved in Downloads folder.", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Saved in Downloads: ${file.name}", Snackbar.LENGTH_SHORT).show()
         }
     }
 
