@@ -4,6 +4,7 @@ import android.content.Intent
 import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -220,13 +221,22 @@ class AssignmentsFragment : Fragment() {
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mimeType)
+                clipData = android.content.ClipData.newRawUri(file.name, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            startActivity(Intent.createChooser(intent, "Open Assignment"))
+
+            val chooser = Intent.createChooser(intent, "Open Assignment").apply {
+                clipData = android.content.ClipData.newRawUri(file.name, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            startActivity(chooser)
         } catch (e: Exception) {
-            Snackbar.make(binding.root, "Saved in Downloads: ${file.name}", Snackbar.LENGTH_SHORT).show()
+            Log.e("AssignmentsFragment", "Error opening file: ${e.message}", e)
+            Snackbar.make(binding.root, "Saved to Downloads: ${file.name}", Snackbar.LENGTH_LONG).show()
         }
     }
 

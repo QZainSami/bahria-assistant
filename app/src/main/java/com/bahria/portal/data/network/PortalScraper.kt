@@ -12,6 +12,7 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
@@ -36,6 +37,35 @@ class PortalScraper {
 
     private val cookieStore = HashMap<String, MutableList<Cookie>>()
 
+    fun syncWithSystemCookieManager(urls: List<String> = listOf(CMS_LOGIN_URL, LMS_ASSIGNMENTS_URL)) {
+        try {
+            val cm = android.webkit.CookieManager.getInstance()
+            for (urlStr in urls) {
+                val httpUrl = urlStr.toHttpUrlOrNull() ?: continue
+                val cookieString = cm.getCookie(urlStr) ?: continue
+                val cookiePairs = cookieString.split(";")
+                val list = cookieStore.getOrPut(httpUrl.host) { mutableListOf() }
+                for (pair in cookiePairs) {
+                    val parts = pair.trim().split("=", limit = 2)
+                    if (parts.size == 2) {
+                        val name = parts[0].trim()
+                        val value = parts[1].trim()
+                        val cookie = Cookie.Builder()
+                            .domain(httpUrl.host)
+                            .path("/")
+                            .name(name)
+                            .value(value)
+                            .build()
+                        list.removeAll { it.name == name }
+                        list.add(cookie)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Cookie sync from system CookieManager: ${e.message}")
+        }
+    }
+
     private val client: OkHttpClient by lazy {
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -53,9 +83,13 @@ class PortalScraper {
             .cookieJar(object : CookieJar {
                 override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
                     val list = cookieStore.getOrPut(url.host) { mutableListOf() }
+                    val cm = try { android.webkit.CookieManager.getInstance() } catch (_: Exception) { null }
                     for (c in cookies) {
                         list.removeAll { it.name == c.name }
                         list.add(c)
+                        try {
+                            cm?.setCookie(url.toString(), "${c.name}=${c.value}; Path=${c.path}; Domain=${c.domain}")
+                        } catch (_: Exception) {}
                     }
                 }
 
@@ -74,6 +108,32 @@ class PortalScraper {
             .followRedirects(true)
             .followSslRedirects(true)
             .build()
+    }
+
+    suspend fun ensureLmsSession(enrollment: String, pass: String, campus: String): Boolean = withContext(Dispatchers.IO) {
+        if (enrollment.isBlank() || pass.isBlank()) return@withContext false
+        try {
+            syncWithSystemCookieManager()
+            val loginRes = login(enrollment, pass, campus)
+            if (!loginRes.isSuccess) {
+                Log.w(TAG, "ensureLmsSession: CMS login failed")
+                return@withContext false
+            }
+
+            // Bridge from CMS into LMS to get LMS session cookies (PHPSESSID)
+            val lmsBridgeRequest = Request.Builder()
+                .url(CMS_GOTO_LMS_URL)
+                .header("User-Agent", USER_AGENT)
+                .header("Referer", CMS_LOGIN_URL)
+                .build()
+            val resp = client.newCall(lmsBridgeRequest).execute()
+            resp.close()
+            Log.d(TAG, "ensureLmsSession: Successfully bridged to LMS")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "ensureLmsSession error: ${e.message}", e)
+            false
+        }
     }
 
     suspend fun login(enrollment: String, pass: String, campus: String): Result<Boolean> = withContext(Dispatchers.IO) {
@@ -387,84 +447,144 @@ class PortalScraper {
     suspend fun downloadAssignmentFile(
         downloadUrl: String,
         targetDir: java.io.File,
-        suggestedFileName: String
+        suggestedFileName: String,
+        onSessionNeeded: (suspend () -> Boolean)? = null
     ): Result<java.io.File> = withContext(Dispatchers.IO) {
         try {
-            val request = Request.Builder()
-                .url(downloadUrl)
-                .header("User-Agent", USER_AGENT)
-                .header("Referer", LMS_ASSIGNMENTS_URL)
-                .build()
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                return@withContext Result.failure(Exception("HTTP ${response.code}: Download failed"))
-            }
-            val body = response.body ?: return@withContext Result.failure(Exception("Empty file response"))
+            syncWithSystemCookieManager()
+            var result = executeDownload(downloadUrl, targetDir, suggestedFileName)
 
-            targetDir.mkdirs()
-
-            // 1. Try to extract filename from Content-Disposition header
-            val contentDisposition = response.header("Content-Disposition")
-            var resolvedName = extractFileNameFromDisposition(contentDisposition)
-
-            // 2. If not in header, use suggestedFileName or URL
-            if (resolvedName.isNullOrBlank()) {
-                resolvedName = suggestedFileName.ifBlank {
-                    downloadUrl.substringAfterLast("/").substringBefore("?").ifBlank { "assignment" }
+            // If it failed because of an HTML login redirect (session expired), re-authenticate and retry!
+            if (result.isFailure && onSessionNeeded != null) {
+                val err = result.exceptionOrNull()?.message ?: ""
+                if (err.contains("SESSION_EXPIRED", ignoreCase = true)) {
+                    Log.i(TAG, "LMS session expired on download. Refreshing portal session...")
+                    val refreshed = onSessionNeeded()
+                    if (refreshed) {
+                        result = executeDownload(downloadUrl, targetDir, suggestedFileName)
+                    }
                 }
             }
 
-            // Clean filename of unsafe characters
-            resolvedName = resolvedName.replace("[\\\\/:*?\"<>|]".toRegex(), "_")
-
-            // Write to a temporary file first
-            val tempFile = java.io.File(targetDir, "download_${System.currentTimeMillis()}.tmp")
-            tempFile.outputStream().use { out ->
-                body.byteStream().use { input ->
-                    input.copyTo(out)
-                }
-            }
-
-            // 3. Inspect magic bytes & Content-Type to guarantee the extension matches the true file format!
-            val contentType = response.header("Content-Type")?.lowercase() ?: ""
-            val magicBytes = ByteArray(4)
-            val readBytes = tempFile.inputStream().use { it.read(magicBytes) }
-
-            val isZipOrDocx = readBytes >= 4 &&
-                    magicBytes[0] == 0x50.toByte() && magicBytes[1] == 0x4B.toByte() &&
-                    magicBytes[2] == 0x03.toByte() && magicBytes[3] == 0x04.toByte() // "PK\u0003\u0004"
-            val isPdf = readBytes >= 4 &&
-                    magicBytes[0] == 0x25.toByte() && magicBytes[1] == 0x50.toByte() &&
-                    magicBytes[2] == 0x44.toByte() && magicBytes[3] == 0x46.toByte() // "%PDF"
-
-            var finalExtension = if (resolvedName.contains(".")) resolvedName.substringAfterLast(".") else ""
-            if (isZipOrDocx) {
-                // If it's an Office Open XML (DOCX/PPTX/XLSX) or ZIP container
-                if (finalExtension.equals("pdf", ignoreCase = true) || finalExtension.isBlank()) {
-                    finalExtension = if (contentType.contains("presentation")) "pptx" else "docx"
-                }
-            } else if (isPdf) {
-                finalExtension = "pdf"
-            } else if (contentType.contains("officedocument.wordprocessingml") || contentType.contains("msword")) {
-                if (!finalExtension.equals("docx", ignoreCase = true) && !finalExtension.equals("doc", ignoreCase = true)) {
-                    finalExtension = "docx"
-                }
-            }
-
-            val baseName = if (resolvedName.contains(".")) resolvedName.substringBeforeLast(".") else resolvedName
-            val finalFileName = if (finalExtension.isNotBlank()) "$baseName.$finalExtension" else resolvedName
-            val finalFile = java.io.File(targetDir, finalFileName)
-
-            if (finalFile.exists()) {
-                finalFile.delete()
-            }
-            tempFile.renameTo(finalFile)
-
-            Result.success(finalFile)
+            result
         } catch (e: Exception) {
             Log.e(TAG, "File download failed: ${e.message}", e)
             Result.failure(e)
         }
+    }
+
+    private fun executeDownload(
+        downloadUrl: String,
+        targetDir: java.io.File,
+        suggestedFileName: String
+    ): Result<java.io.File> {
+        val request = Request.Builder()
+            .url(downloadUrl)
+            .header("User-Agent", USER_AGENT)
+            .header("Referer", LMS_ASSIGNMENTS_URL)
+            .header("Accept", "*/*")
+            .build()
+        val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            return Result.failure(Exception("HTTP ${response.code}: Download failed"))
+        }
+        val body = response.body ?: return Result.failure(Exception("Empty file response"))
+
+        targetDir.mkdirs()
+
+        // 1. Try to extract filename from Content-Disposition header
+        val contentDisposition = response.header("Content-Disposition")
+        var resolvedName = extractFileNameFromDisposition(contentDisposition)
+
+        // 2. If not in header, use suggestedFileName or URL
+        if (resolvedName.isNullOrBlank()) {
+            resolvedName = suggestedFileName.ifBlank {
+                downloadUrl.substringAfterLast("/").substringBefore("?").ifBlank { "assignment" }
+            }
+        }
+
+        // Clean filename of unsafe characters
+        resolvedName = resolvedName.replace("[\\\\/:*?\"<>|]".toRegex(), "_")
+
+        // Write to a temporary file first
+        val tempFile = java.io.File(targetDir, "download_${System.currentTimeMillis()}.tmp")
+        tempFile.outputStream().use { out ->
+            body.byteStream().use { input ->
+                input.copyTo(out)
+            }
+        }
+
+        val fileLength = tempFile.length()
+        if (fileLength == 0L) {
+            tempFile.delete()
+            return Result.failure(Exception("Downloaded file was empty"))
+        }
+
+        // 3. Inspect header bytes to verify it's a real document and NOT an HTML login redirect!
+        val headerBytes = ByteArray(1024.coerceAtMost(fileLength.toInt()))
+        val readBytes = tempFile.inputStream().use { it.read(headerBytes) }
+        val headerText = String(headerBytes, 0, readBytes, Charsets.UTF_8).lowercase()
+        val contentType = response.header("Content-Type")?.lowercase() ?: ""
+
+        val isHtml = contentType.contains("text/html") ||
+                headerText.contains("<!doctype html") ||
+                headerText.contains("<html") ||
+                headerText.contains("<head") ||
+                headerText.contains("login.aspx") ||
+                headerText.contains("aspirewebcontrols") ||
+                headerText.contains("cms - bahria university") ||
+                headerText.contains("window.location")
+
+        if (isHtml) {
+            tempFile.delete()
+            return Result.failure(Exception("SESSION_EXPIRED: Portal returned HTML login page instead of assignment binary"))
+        }
+
+        // 4. Inspect magic bytes & Content-Type to guarantee the extension matches the true file format!
+        val isZipOrDocx = readBytes >= 4 &&
+                headerBytes[0] == 0x50.toByte() && headerBytes[1] == 0x4B.toByte() &&
+                headerBytes[2] == 0x03.toByte() && headerBytes[3] == 0x04.toByte() // "PK\u0003\u0004"
+        val isPdf = readBytes >= 4 &&
+                headerBytes[0] == 0x25.toByte() && headerBytes[1] == 0x50.toByte() &&
+                headerBytes[2] == 0x44.toByte() && headerBytes[3] == 0x46.toByte() // "%PDF"
+        val isOleDoc = readBytes >= 4 &&
+                headerBytes[0] == 0xD0.toByte() && headerBytes[1] == 0xCF.toByte() &&
+                headerBytes[2] == 0x11.toByte() && headerBytes[3] == 0xE0.toByte() // Word 97-2003 .doc (OLE2)
+        val isRar = readBytes >= 4 &&
+                headerBytes[0] == 0x52.toByte() && headerBytes[1] == 0x61.toByte() &&
+                headerBytes[2] == 0x72.toByte() && headerBytes[3] == 0x21.toByte() // "Rar!"
+
+        var finalExtension = if (resolvedName.contains(".")) resolvedName.substringAfterLast(".").lowercase() else ""
+        when {
+            isZipOrDocx -> {
+                // If it's an Office Open XML (DOCX/PPTX/XLSX) or ZIP container
+                if (finalExtension.isBlank() || finalExtension == "pdf" || finalExtension == "doc") {
+                    finalExtension = when {
+                        contentType.contains("presentation") || headerText.contains("ppt/") -> "pptx"
+                        contentType.contains("spreadsheet") || headerText.contains("xl/") -> "xlsx"
+                        contentType.contains("zip") -> "zip"
+                        else -> "docx"
+                    }
+                }
+            }
+            isPdf -> finalExtension = "pdf"
+            isOleDoc -> finalExtension = "doc"
+            isRar -> finalExtension = "rar"
+            contentType.contains("officedocument.wordprocessingml") -> finalExtension = "docx"
+            contentType.contains("msword") -> finalExtension = "doc"
+            finalExtension.isBlank() -> finalExtension = "docx"
+        }
+
+        val baseName = if (resolvedName.contains(".")) resolvedName.substringBeforeLast(".") else resolvedName
+        val finalFileName = "$baseName.$finalExtension"
+        val finalFile = java.io.File(targetDir, finalFileName)
+
+        if (finalFile.exists()) {
+            finalFile.delete()
+        }
+        tempFile.renameTo(finalFile)
+
+        return Result.success(finalFile)
     }
 
     private fun extractFileNameFromDisposition(header: String?): String? {
