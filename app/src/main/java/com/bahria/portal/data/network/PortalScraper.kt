@@ -4,6 +4,9 @@ import android.util.Log
 import com.bahria.portal.data.model.Assignment
 import com.bahria.portal.data.model.CourseAttendance
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -228,82 +231,157 @@ class PortalScraper {
             client.newCall(lmsBridgeRequest).execute()
 
             // Step 2: Open Assignments page
-            val request = Request.Builder()
+            val initialRequest = Request.Builder()
                 .url(LMS_ASSIGNMENTS_URL)
                 .header("User-Agent", USER_AGENT)
                 .build()
 
-            val response = client.newCall(request).execute()
-            val html = response.body?.string() ?: ""
-            val doc = Jsoup.parse(html)
+            val initialResponse = client.newCall(initialRequest).execute()
+            val initialHtml = initialResponse.body?.string() ?: ""
+            val initialDoc = Jsoup.parse(initialHtml)
 
-            val list = mutableListOf<Assignment>()
-            val rows = doc.select("table tr")
+            // Extract current semester token
+            val semesterSelect = initialDoc.select("select#semesterId option[selected]").firstOrNull()
+                ?: initialDoc.select("select#semesterId option").firstOrNull()
+            val semesterKey = semesterSelect?.`val`() ?: ""
 
-            for (row in rows) {
-                val cols = row.select("td")
-                if (cols.size >= 3) {
-                    val title = cols[0].text().trim()
-                    val course = if (cols.size >= 4) cols[1].text().trim() else "Course"
-                    val dueDate = cols[cols.size - 2].text().trim()
-                    val statusText = cols[cols.size - 1].text().trim()
+            // Extract all registered courses from dropdown
+            val courseOptions = initialDoc.select("select#courseId option").filter {
+                it.`val`().isNotBlank() && !it.text().contains("Select Course", ignoreCase = true)
+            }
 
-                    if (title.equals("Assignment", ignoreCase = true) || title.equals("Title", ignoreCase = true) || title.isBlank()) {
-                        continue
-                    }
+            val allAssignments = mutableListOf<Assignment>()
 
-                    val isPending = !statusText.contains("Submitted", ignoreCase = true) && !statusText.contains("Graded", ignoreCase = true)
-                    val status = if (isPending) "Pending" else "Submitted"
-
-                    val dueTimestamp = Assignment.parseDate(dueDate)
-                    val anchor = row.select("a[href]").firstOrNull { a ->
-                        val text = a.text().lowercase()
-                        val href = a.attr("href").lowercase()
-                        text.endsWith(".docx") || text.endsWith(".doc") || text.endsWith(".pdf") ||
-                                href.contains("download") || href.contains("assignment") || href.contains(".docx") || href.contains(".pdf")
-                    } ?: row.select("a[href]").firstOrNull()
-
-                    val link = anchor?.attr("abs:href") ?: ""
-                    val anchorText = anchor?.text()?.trim() ?: ""
-
-                    var fileName = ""
-                    if (anchorText.matches(Regex(".*\\.(docx|doc|pdf|zip|pptx|txt)$", RegexOption.IGNORE_CASE))) {
-                        fileName = anchorText
-                    } else if (link.isNotBlank()) {
-                        val uri = android.net.Uri.parse(link)
-                        val paramFile = uri.getQueryParameter("file") ?: uri.getQueryParameter("filename") ?: uri.getQueryParameter("f")
-                        if (!paramFile.isNullOrBlank()) {
-                            fileName = paramFile
-                        } else {
-                            val lastSegment = link.substringAfterLast("/").substringBefore("?")
-                            if (lastSegment.contains(".")) {
-                                fileName = lastSegment
+            if (courseOptions.isEmpty()) {
+                val defaultCourse = initialDoc.select("select#courseId option[selected]").firstOrNull()?.text()?.trim() ?: "Course"
+                allAssignments.addAll(parseAssignmentsFromTable(initialDoc, defaultCourse))
+            } else {
+                // Fetch assignments across ALL courses concurrently in parallel
+                coroutineScope {
+                    val deferredList = courseOptions.map { opt ->
+                        async(Dispatchers.IO) {
+                            val courseKey = opt.`val`()
+                            val courseTitle = opt.text().trim()
+                            if (opt.hasAttr("selected")) {
+                                parseAssignmentsFromTable(initialDoc, courseTitle)
+                            } else {
+                                try {
+                                    val courseUrl = "https://lms.bahria.edu.pk/Student/Assignments.php?s=$semesterKey&oc=$courseKey"
+                                    val req = Request.Builder()
+                                        .url(courseUrl)
+                                        .header("User-Agent", USER_AGENT)
+                                        .header("Referer", LMS_ASSIGNMENTS_URL)
+                                        .build()
+                                    val resp = client.newCall(req).execute()
+                                    val html = resp.body?.string() ?: ""
+                                    parseAssignmentsFromTable(Jsoup.parse(html), courseTitle)
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "Failed to fetch assignments for $courseTitle: ${e.message}")
+                                    emptyList()
+                                }
                             }
                         }
                     }
-                    if (fileName.isBlank()) {
-                        fileName = "${title.replace("[^a-zA-Z0-9.-]".toRegex(), "_")}.docx"
+                    deferredList.awaitAll().forEach { list ->
+                        allAssignments.addAll(list)
                     }
-
-                    val item = Assignment(
-                        id = "${course}_$title".replace(" ", "_"),
-                        title = title,
-                        courseName = course,
-                        dueDateString = dueDate,
-                        dueTimestamp = dueTimestamp,
-                        status = status,
-                        downloadUrl = link,
-                        fileName = fileName
-                    )
-                    list.add(item)
                 }
             }
 
-            Result.success(list)
+            Result.success(allAssignments)
         } catch (e: Exception) {
             Log.e(TAG, "Fetch assignments failed: ${e.message}", e)
             Result.failure(e)
         }
+    }
+
+    private fun parseAssignmentsFromTable(doc: org.jsoup.nodes.Document, courseTitle: String): List<Assignment> {
+        val list = mutableListOf<Assignment>()
+        val rows = doc.select("table.table tr")
+
+        for (row in rows) {
+            val cols = row.select("td")
+            if (cols.size >= 8) {
+                val assignNo = cols[0].text().trim()
+                val rawTitle = cols[1].text().trim()
+                if (rawTitle.isBlank() || rawTitle.equals("Title", ignoreCase = true) || rawTitle.equals("Assignment", ignoreCase = true)) {
+                    continue
+                }
+
+                // Download anchor in column 2: e.g. <a href="Download.php?k=..." class="label label-info">... Assignment </a>
+                val downloadAnchor = cols[2].select("a[href*='Download.php']").firstOrNull {
+                    it.text().contains("Assignment", ignoreCase = true)
+                } ?: cols[2].select("a[href*='Download.php']").firstOrNull()
+                  ?: cols[2].select("a[href]").firstOrNull()
+
+                var downloadUrl = downloadAnchor?.attr("href") ?: ""
+                if (downloadUrl.isNotBlank() && !downloadUrl.startsWith("http")) {
+                    downloadUrl = "https://lms.bahria.edu.pk/Student/" + downloadUrl.trimStart('/')
+                }
+
+                // Column 3: Added Submission (e.g. contains Download link for submission vs "No Submission")
+                val submissionCol = cols[3]
+                val hasSubmission = submissionCol.select("a[href*='Download.php']").isNotEmpty() ||
+                        (submissionCol.text().contains("Submission", ignoreCase = true) && !submissionCol.text().contains("No Submission", ignoreCase = true))
+
+                // Column 6: Action ("Deadline Exceeded", "Submit")
+                val actionCol = cols[6].text().trim()
+                val isDeadlineExceeded = actionCol.contains("Deadline Exceeded", ignoreCase = true)
+
+                // Column 7: Deadline ("25 November 2026-03:00 pm")
+                val deadlineStr = cols[7].text().trim()
+                val dueTimestamp = Assignment.parseDate(deadlineStr)
+
+                val status = when {
+                    hasSubmission -> "Submitted"
+                    isDeadlineExceeded -> "Overdue"
+                    dueTimestamp in 1 until System.currentTimeMillis() -> "Overdue"
+                    else -> "Pending"
+                }
+
+                val safeCourse = courseTitle.replace("[^a-zA-Z0-9.-]".toRegex(), "_")
+                val safeTitle = rawTitle.replace("[^a-zA-Z0-9.-]".toRegex(), "_")
+                val suggestedFileName = "${safeCourse}_${safeTitle}.docx"
+
+                list.add(
+                    Assignment(
+                        id = "${safeCourse}_${safeTitle}_$assignNo",
+                        title = rawTitle,
+                        courseName = courseTitle,
+                        dueDateString = deadlineStr,
+                        dueTimestamp = dueTimestamp,
+                        status = status,
+                        downloadUrl = downloadUrl,
+                        fileName = suggestedFileName
+                    )
+                )
+            } else if (cols.size in 3..7) {
+                val rawTitle = cols[0].text().trim()
+                if (rawTitle.isBlank() || rawTitle.equals("Title", ignoreCase = true)) continue
+                val course = if (cols.size >= 4) cols[1].text().trim() else courseTitle
+                val deadlineStr = cols[cols.size - 1].text().trim()
+                val dueTimestamp = Assignment.parseDate(deadlineStr)
+                val anchor = row.select("a[href*='Download.php']").firstOrNull() ?: row.select("a[href]").firstOrNull()
+                var downloadUrl = anchor?.attr("href") ?: ""
+                if (downloadUrl.isNotBlank() && !downloadUrl.startsWith("http")) {
+                    downloadUrl = "https://lms.bahria.edu.pk/Student/" + downloadUrl.trimStart('/')
+                }
+
+                list.add(
+                    Assignment(
+                        id = "${course}_$rawTitle".replace(" ", "_"),
+                        title = rawTitle,
+                        courseName = course,
+                        dueDateString = deadlineStr,
+                        dueTimestamp = dueTimestamp,
+                        status = if (dueTimestamp in 1 until System.currentTimeMillis()) "Overdue" else "Pending",
+                        downloadUrl = downloadUrl,
+                        fileName = "${rawTitle.replace(" ", "_")}.docx"
+                    )
+                )
+            }
+        }
+        return list
     }
 
     suspend fun downloadAssignmentFile(

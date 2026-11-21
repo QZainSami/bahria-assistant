@@ -46,19 +46,41 @@ data class Assignment(
 
     companion object {
         fun parseDate(dateStr: String): Long {
+            if (dateStr.isBlank()) return 0L
+            // Bahria LMS format example: "25 November 2026-03:00 pm"
+            val raw = dateStr.trim()
+            val sanitized = raw.replace("-", " ").replace("\\s+".toRegex(), " ")
+
             val formats = arrayOf(
-                "dd MMM yyyy - hh:mm a",
+                "dd MMMM yyyy hh:mm a",
+                "dd MMMM yyyy - hh:mm a",
+                "dd MMMM yyyy-hh:mm a",
                 "dd MMM yyyy hh:mm a",
+                "dd MMM yyyy - hh:mm a",
                 "yyyy-MM-dd HH:mm:ss",
-                "dd-MM-yyyy HH:mm"
+                "dd-MM-yyyy HH:mm",
+                "yyyy-MM-dd",
+                "dd/MM/yyyy hh:mm a"
             )
+
+            // Try sanitized first
             for (fmt in formats) {
                 try {
                     val sdf = SimpleDateFormat(fmt, Locale.ENGLISH)
-                    val d = sdf.parse(dateStr.trim())
+                    val d = sdf.parse(sanitized)
                     if (d != null) return d.time
                 } catch (_: Exception) {}
             }
+
+            // Fallback to raw string
+            for (fmt in formats) {
+                try {
+                    val sdf = SimpleDateFormat(fmt, Locale.ENGLISH)
+                    val d = sdf.parse(raw)
+                    if (d != null) return d.time
+                } catch (_: Exception) {}
+            }
+
             return 0L
         }
     }
