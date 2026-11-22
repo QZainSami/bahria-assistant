@@ -1,4 +1,4 @@
-# 🎓 Bahria Portal Companion (BU Portal Pro)
+# 🎓 Bahria Portal Companion
 
 A modern, high-performance, and beautifully crafted Android companion application for **Bahria University** students to track **CMS Attendance** and **LMS Assignments** with instant background updates, proactive deadline alerts, offline caching, and direct document downloads.
 
