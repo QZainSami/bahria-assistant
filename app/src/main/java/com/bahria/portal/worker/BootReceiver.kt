@@ -10,6 +10,7 @@ class BootReceiver : BroadcastReceiver() {
         context ?: return
         val prefs = PreferencesManager(context)
         if (prefs.isLoggedIn && prefs.isAutoCheckEnabled) {
+            com.bahria.portal.service.BahriaBackgroundService.start(context)
             PortalSyncWorker.schedule(context, prefs.checkIntervalMinutes.toLong())
         }
     }

@@ -81,6 +81,14 @@ class PreferencesManager(context: Context) {
             .apply()
     }
 
+    fun hasAlertBeenSent(key: String): Boolean {
+        return prefs.getBoolean("alert_sent_$key", false)
+    }
+
+    fun markAlertSent(key: String) {
+        prefs.edit().putBoolean("alert_sent_$key", true).apply()
+    }
+
     fun logout() {
         val remember = rememberMe
         val savedEnrollment = if (remember) enrollment else ""

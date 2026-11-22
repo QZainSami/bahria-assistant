@@ -85,6 +85,7 @@ class SettingsFragment : Fragment() {
                 if (prefs.checkIntervalMinutes != newInterval) {
                     prefs.checkIntervalMinutes = newInterval
                     if (prefs.isAutoCheckEnabled) {
+                        com.bahria.portal.service.BahriaBackgroundService.start(requireContext())
                         PortalSyncWorker.schedule(requireContext(), newInterval.toLong())
                     }
                 }
@@ -101,9 +102,11 @@ class SettingsFragment : Fragment() {
         binding.switchAutoCheck.setOnCheckedChangeListener { _, isChecked ->
             prefs.isAutoCheckEnabled = isChecked
             if (isChecked) {
+                com.bahria.portal.service.BahriaBackgroundService.start(requireContext())
                 PortalSyncWorker.schedule(requireContext(), prefs.checkIntervalMinutes.toLong())
                 Snackbar.make(binding.root, "Background checking activated", Snackbar.LENGTH_SHORT).show()
             } else {
+                com.bahria.portal.service.BahriaBackgroundService.stop(requireContext())
                 PortalSyncWorker.cancel(requireContext())
                 Snackbar.make(binding.root, "Background checking disabled", Snackbar.LENGTH_SHORT).show()
             }
@@ -165,6 +168,7 @@ class SettingsFragment : Fragment() {
                 .setMessage("Do you want to log out of your Bahria Portal account?")
                 .setPositiveButton("Log Out") { _, _ ->
                     prefs.logout()
+                    com.bahria.portal.service.BahriaBackgroundService.stop(requireContext())
                     PortalSyncWorker.cancel(requireContext())
                     val intent = Intent(requireContext(), LoginActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

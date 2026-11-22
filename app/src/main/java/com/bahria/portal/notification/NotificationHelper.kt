@@ -1,5 +1,6 @@
 package com.bahria.portal.notification
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -60,6 +61,28 @@ class NotificationHelper(private val context: Context) {
             notificationManager.createNotificationChannel(attendChannel)
             notificationManager.createNotificationChannel(syncChannel)
         }
+    }
+
+    fun buildForegroundNotification(statusText: String): Notification {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return NotificationCompat.Builder(context, CHANNEL_SYNC)
+            .setSmallIcon(R.drawable.ic_app_logo)
+            .setContentTitle("Bahria Assistant")
+            .setContentText(statusText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(statusText))
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setContentIntent(pendingIntent)
+            .build()
     }
 
     fun showAssignmentNotification(title: String, message: String) {

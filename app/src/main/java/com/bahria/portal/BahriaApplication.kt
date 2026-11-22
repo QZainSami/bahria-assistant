@@ -16,9 +16,10 @@ class BahriaApplication : Application() {
         // Init notification channels
         NotificationHelper(this)
 
-        // Schedule periodic sync if enabled
+        // Schedule periodic sync & start background service if enabled
         val prefs = PreferencesManager(this)
-        if (prefs.isLoggedIn && prefs.isAutoCheckEnabled) {
+        if ((prefs.isLoggedIn || prefs.isDemoMode) && prefs.isAutoCheckEnabled) {
+            com.bahria.portal.service.BahriaBackgroundService.start(this)
             PortalSyncWorker.schedule(this, prefs.checkIntervalMinutes.toLong())
         }
     }

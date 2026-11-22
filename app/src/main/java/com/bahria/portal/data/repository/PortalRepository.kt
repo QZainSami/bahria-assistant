@@ -12,8 +12,12 @@ import com.bahria.portal.data.network.PortalAutomatorWebView
 import com.bahria.portal.data.network.PortalScraper
 import com.bahria.portal.notification.NotificationHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.util.Date
+import java.util.Locale
 
 class PortalRepository(private val context: Context) {
 
@@ -52,6 +56,7 @@ class PortalRepository(private val context: Context) {
                 attendanceDao.insertAll(mockAttendance)
                 assignmentDao.insertAll(mockAssignments)
                 prefs.lastSyncTimestamp = System.currentTimeMillis()
+                checkDueAssignmentAlerts(mockAssignments)
                 return@withContext Result.success(Unit)
             }
 
@@ -66,25 +71,30 @@ class PortalRepository(private val context: Context) {
             var attendanceResult: List<CourseAttendance>? = null
             var assignmentsResult: List<Assignment>? = null
 
-            // Method 1: Try Direct OkHttp Scraper
+            // Method 1: Try Direct OkHttp Scraper concurrently
             val loginResult = scraper.login(enrollment, password, campus)
             if (loginResult.isSuccess) {
-                val attRes = scraper.fetchAttendance()
-                if (attRes.isSuccess && attRes.getOrNull()?.isNotEmpty() == true) {
-                    attendanceResult = attRes.getOrNull()
-                }
+                coroutineScope {
+                    val attDeferred = async(Dispatchers.IO) { scraper.fetchAttendance() }
+                    val assDeferred = async(Dispatchers.IO) { scraper.fetchAssignments() }
 
-                val assRes = scraper.fetchAssignments()
-                if (assRes.isSuccess && assRes.getOrNull()?.isNotEmpty() == true) {
-                    assignmentsResult = assRes.getOrNull()
+                    val attRes = attDeferred.await()
+                    if (attRes.isSuccess) {
+                        attendanceResult = attRes.getOrNull()
+                    }
+
+                    val assRes = assDeferred.await()
+                    if (assRes.isSuccess) {
+                        assignmentsResult = assRes.getOrNull()
+                    }
                 }
             }
 
-            // Method 2: If Direct Scraper didn't get complete data, fall back to Headless Automator
-            if (attendanceResult == null || assignmentsResult == null) {
-                Log.d(TAG, "Direct scraper was incomplete. Running headless automation fallback...")
+            // Method 2: If Direct Scraper didn't get attendance and is a forced sync, fallback to Automator
+            if (isForce && attendanceResult == null) {
+                Log.d(TAG, "Direct scraper was incomplete on forced sync. Running headless automation fallback...")
                 val (autoAtt, autoAss) = automator.automateFetch(enrollment, password, campus)
-                if (attendanceResult == null && autoAtt.isNotEmpty()) {
+                if (autoAtt.isNotEmpty()) {
                     attendanceResult = autoAtt
                 }
                 if (assignmentsResult == null && autoAss.isNotEmpty()) {
@@ -92,7 +102,6 @@ class PortalRepository(private val context: Context) {
                 }
             }
 
-            // Compare with existing records to fire notifications on changes!
             val oldAttendance = attendanceDao.getAllAttendanceSync()
             val oldAssignments = assignmentDao.getAllAssignmentsSync()
 
@@ -103,6 +112,7 @@ class PortalRepository(private val context: Context) {
 
             assignmentsResult?.let { newAssList ->
                 detectNewAssignments(oldAssignments, newAssList)
+                checkDueAssignmentAlerts(newAssList)
                 assignmentDao.insertAll(newAssList)
             }
 
@@ -135,15 +145,8 @@ class PortalRepository(private val context: Context) {
             val loginResult = scraper.login(enrollment, password, campus)
             if (loginResult.isSuccess) {
                 val attRes = scraper.fetchAttendance()
-                if (attRes.isSuccess && attRes.getOrNull()?.isNotEmpty() == true) {
+                if (attRes.isSuccess) {
                     attendanceResult = attRes.getOrNull()
-                }
-            }
-
-            if (attendanceResult == null) {
-                val (autoAtt, _) = automator.automateFetch(enrollment, password, campus)
-                if (autoAtt.isNotEmpty()) {
-                    attendanceResult = autoAtt
                 }
             }
 
@@ -168,6 +171,7 @@ class PortalRepository(private val context: Context) {
                 val mockAssignments = MockDataProvider.getMockAssignments()
                 assignmentDao.insertAll(mockAssignments)
                 prefs.lastSyncTimestamp = System.currentTimeMillis()
+                checkDueAssignmentAlerts(mockAssignments)
                 return@withContext Result.success(Unit)
             }
 
@@ -183,21 +187,15 @@ class PortalRepository(private val context: Context) {
             val loginResult = scraper.login(enrollment, password, campus)
             if (loginResult.isSuccess) {
                 val assRes = scraper.fetchAssignments()
-                if (assRes.isSuccess && assRes.getOrNull()?.isNotEmpty() == true) {
+                if (assRes.isSuccess) {
                     assignmentsResult = assRes.getOrNull()
-                }
-            }
-
-            if (assignmentsResult == null) {
-                val (_, autoAss) = automator.automateFetch(enrollment, password, campus)
-                if (autoAss.isNotEmpty()) {
-                    assignmentsResult = autoAss
                 }
             }
 
             if (assignmentsResult != null) {
                 val oldAssignments = assignmentDao.getAllAssignmentsSync()
                 detectNewAssignments(oldAssignments, assignmentsResult)
+                checkDueAssignmentAlerts(assignmentsResult)
                 assignmentDao.insertAll(assignmentsResult)
                 prefs.lastSyncTimestamp = System.currentTimeMillis()
                 Result.success(Unit)
@@ -211,12 +209,11 @@ class PortalRepository(private val context: Context) {
     }
 
     private suspend fun detectAttendanceChanges(oldList: List<CourseAttendance>, newList: List<CourseAttendance>) {
-        if (oldList.isEmpty()) return // First load, no notifications
         val oldMap = oldList.associateBy { it.courseName }
 
         for (newCourse in newList) {
-            val oldCourse = oldMap[newCourse.courseName] ?: continue
-            if (newCourse.absent > oldCourse.absent) {
+            val oldCourse = oldMap[newCourse.courseName]
+            if (oldCourse != null && newCourse.absent > oldCourse.absent) {
                 val title = "⚠️ Attendance Alert: ${newCourse.courseName}"
                 val message = "You were marked absent! Current attendance: ${newCourse.percentage}%"
                 val notif = NotificationItem(
@@ -229,25 +226,146 @@ class PortalRepository(private val context: Context) {
                     notificationHelper.showAttendanceNotification(title, message)
                 }
             }
+
+            // Low attendance alert (< 75%)
+            if (newCourse.percentage < 75.0 && newCourse.total > 0) {
+                val notifKey = "low_att_${newCourse.courseName}_${newCourse.percentage.toInt()}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val title = "🚨 Low Attendance Warning: ${newCourse.courseName}"
+                    val message = "${newCourse.percentage}% is below the 75% requirement! Missed ${newCourse.absent.toInt()} hours."
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ATTENDANCE"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAttendanceNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
+                }
+            }
         }
     }
 
     private suspend fun detectNewAssignments(oldList: List<Assignment>, newList: List<Assignment>) {
-        if (oldList.isEmpty()) return // First load
         val oldIds = oldList.map { it.id }.toSet()
 
         for (newAss in newList) {
             if (!oldIds.contains(newAss.id) && newAss.isPending) {
-                val title = "📝 New Assignment: ${newAss.title}"
-                val message = "${newAss.courseName} • Due: ${newAss.dueDateString}"
-                val notif = NotificationItem(
-                    title = title,
-                    message = message,
-                    type = "ASSIGNMENT"
-                )
-                notificationDao.insert(notif)
-                if (prefs.isNotificationsEnabled) {
-                    notificationHelper.showAssignmentNotification(title, message)
+                val notifKey = "new_${newAss.id}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val title = "📝 New Assignment: ${newAss.title}"
+                    val message = "${newAss.courseName} • Due: ${newAss.dueDateString}"
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ASSIGNMENT"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAssignmentNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
+                }
+            }
+        }
+    }
+
+    suspend fun checkDueAssignmentAlerts(providedList: List<Assignment>? = null) = withContext(Dispatchers.IO) {
+        val list = providedList ?: assignmentDao.getAllAssignmentsSync()
+        if (list.isEmpty()) return@withContext
+
+        val now = System.currentTimeMillis()
+        val calendar = java.util.Calendar.getInstance()
+        val todayYear = calendar.get(java.util.Calendar.YEAR)
+        val todayDayOfYear = calendar.get(java.util.Calendar.DAY_OF_YEAR)
+
+        for (ass in list) {
+            if (ass.isSubmitted) continue
+
+            val dueTime = if (ass.dueTimestamp > 0) ass.dueTimestamp else Assignment.parseDate(ass.dueDateString)
+
+            var isDueCalendarToday = false
+            if (dueTime > 0) {
+                val dueCal = java.util.Calendar.getInstance().apply { timeInMillis = dueTime }
+                if (dueCal.get(java.util.Calendar.YEAR) == todayYear && dueCal.get(java.util.Calendar.DAY_OF_YEAR) == todayDayOfYear) {
+                    isDueCalendarToday = true
+                }
+            }
+
+            // Case 1: Unsubmitted and Due Today (calendar today or within 24 hours)
+            if (dueTime > now && (isDueCalendarToday || (dueTime - now) <= 24 * 60 * 60 * 1000L)) {
+                val notifKey = "due_today_${ass.id}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val remainingHours = (dueTime - now) / (1000 * 60 * 60)
+                    val timeMsg = if (remainingHours <= 1) "in less than 1 hour!" else "in $remainingHours hours!"
+                    val title = "⚠️ Assignment Due Today: ${ass.title}"
+                    val message = "Unsubmitted! ${ass.courseName} is due $timeMsg (${ass.dueDateString})"
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ASSIGNMENT_DUE"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAssignmentNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
+                }
+            }
+            // Case 2: Unsubmitted and Due Soon (within 24 to 48 hours)
+            else if (dueTime > now && (dueTime - now) <= 48 * 60 * 60 * 1000L) {
+                val notifKey = "due_soon_${ass.id}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val title = "⏳ Assignment Due Soon: ${ass.title}"
+                    val message = "${ass.courseName} is due in ~2 days (${ass.dueDateString}). Status: Not submitted."
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ASSIGNMENT_DUE"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAssignmentNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
+                }
+            }
+            // Case 3: Overdue / Missed Deadline (within last 48 hours, or calendar today without submitting)
+            else if ((dueTime in 1..now && (now - dueTime) <= 48 * 60 * 60 * 1000L) || (isDueCalendarToday && dueTime <= now)) {
+                val notifKey = "overdue_${ass.id}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val title = "🚨 Deadline Missed: ${ass.title}"
+                    val message = "${ass.courseName} deadline has passed (${ass.dueDateString}). Status: Not submitted."
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ASSIGNMENT_OVERDUE"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAssignmentNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
+                }
+            }
+            // Case 4: General unsubmitted assignment reminder if never alerted
+            else if (ass.isPending) {
+                val notifKey = "pending_reminder_${ass.id}"
+                if (!prefs.hasAlertBeenSent(notifKey)) {
+                    val title = "📝 Unsubmitted Assignment: ${ass.title}"
+                    val message = "${ass.courseName} • Due: ${ass.dueDateString}"
+                    val notif = NotificationItem(
+                        title = title,
+                        message = message,
+                        type = "ASSIGNMENT"
+                    )
+                    notificationDao.insert(notif)
+                    if (prefs.isNotificationsEnabled) {
+                        notificationHelper.showAssignmentNotification(title, message)
+                    }
+                    prefs.markAlertSent(notifKey)
                 }
             }
         }

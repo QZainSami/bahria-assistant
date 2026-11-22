@@ -120,6 +120,7 @@ class LoginActivity : AppCompatActivity() {
 
             if (result.isSuccess) {
                 if (prefs.isAutoCheckEnabled) {
+                    com.bahria.portal.service.BahriaBackgroundService.start(this@LoginActivity)
                     PortalSyncWorker.schedule(this@LoginActivity, prefs.checkIntervalMinutes.toLong())
                 }
                 navigateToMain()

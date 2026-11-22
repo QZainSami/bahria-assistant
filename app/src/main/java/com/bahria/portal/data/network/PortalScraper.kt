@@ -35,7 +35,7 @@ class PortalScraper {
         private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     }
 
-    private val cookieStore = HashMap<String, MutableList<Cookie>>()
+    private val cookieStore = java.util.concurrent.ConcurrentHashMap<String, MutableList<Cookie>>()
 
     fun syncWithSystemCookieManager(urls: List<String> = listOf(CMS_LOGIN_URL, LMS_ASSIGNMENTS_URL)) {
         try {
@@ -44,20 +44,22 @@ class PortalScraper {
                 val httpUrl = urlStr.toHttpUrlOrNull() ?: continue
                 val cookieString = cm.getCookie(urlStr) ?: continue
                 val cookiePairs = cookieString.split(";")
-                val list = cookieStore.getOrPut(httpUrl.host) { mutableListOf() }
-                for (pair in cookiePairs) {
-                    val parts = pair.trim().split("=", limit = 2)
-                    if (parts.size == 2) {
-                        val name = parts[0].trim()
-                        val value = parts[1].trim()
-                        val cookie = Cookie.Builder()
-                            .domain(httpUrl.host)
-                            .path("/")
-                            .name(name)
-                            .value(value)
-                            .build()
-                        list.removeAll { it.name == name }
-                        list.add(cookie)
+                synchronized(cookieStore) {
+                    val list = cookieStore.getOrPut(httpUrl.host) { mutableListOf() }
+                    for (pair in cookiePairs) {
+                        val parts = pair.trim().split("=", limit = 2)
+                        if (parts.size == 2) {
+                            val name = parts[0].trim()
+                            val value = parts[1].trim()
+                            val cookie = Cookie.Builder()
+                                .domain(httpUrl.host)
+                                .path("/")
+                                .name(name)
+                                .value(value)
+                                .build()
+                            list.removeAll { it.name == name }
+                            list.add(cookie)
+                        }
                     }
                 }
             }
@@ -77,34 +79,46 @@ class PortalScraper {
             init(null, trustAllCerts, SecureRandom())
         }
 
+        val dispatcher = okhttp3.Dispatcher().apply {
+            maxRequests = 32
+            maxRequestsPerHost = 16
+        }
+
         OkHttpClient.Builder()
+            .dispatcher(dispatcher)
+            .connectionPool(okhttp3.ConnectionPool(10, 5, TimeUnit.MINUTES))
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .cookieJar(object : CookieJar {
                 override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                    val list = cookieStore.getOrPut(url.host) { mutableListOf() }
-                    val cm = try { android.webkit.CookieManager.getInstance() } catch (_: Exception) { null }
-                    for (c in cookies) {
-                        list.removeAll { it.name == c.name }
-                        list.add(c)
-                        try {
-                            cm?.setCookie(url.toString(), "${c.name}=${c.value}; Path=${c.path}; Domain=${c.domain}")
-                        } catch (_: Exception) {}
+                    synchronized(cookieStore) {
+                        val list = cookieStore.getOrPut(url.host) { mutableListOf() }
+                        val cm = try { android.webkit.CookieManager.getInstance() } catch (_: Exception) { null }
+                        for (c in cookies) {
+                            list.removeAll { it.name == c.name }
+                            list.add(c)
+                            try {
+                                cm?.setCookie(url.toString(), "${c.name}=${c.value}; Path=${c.path}; Domain=${c.domain}")
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
 
                 override fun loadForRequest(url: HttpUrl): List<Cookie> {
                     val matching = mutableListOf<Cookie>()
-                    cookieStore.forEach { (host, cookies) ->
-                        if (url.host.contains(host) || host.contains(url.host)) {
-                            matching.addAll(cookies)
+                    synchronized(cookieStore) {
+                        cookieStore.forEach { (host, cookies) ->
+                            if (url.host.contains(host) || host.contains(url.host)) {
+                                matching.addAll(cookies)
+                            }
                         }
                     }
                     return matching
                 }
             })
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(12, TimeUnit.SECONDS)
+            .readTimeout(12, TimeUnit.SECONDS)
+            .writeTimeout(12, TimeUnit.SECONDS)
             .followRedirects(true)
             .followSslRedirects(true)
             .build()
@@ -287,8 +301,9 @@ class PortalScraper {
             val lmsBridgeRequest = Request.Builder()
                 .url(CMS_GOTO_LMS_URL)
                 .header("User-Agent", USER_AGENT)
+                .header("Referer", CMS_ATTENDANCE_URL)
                 .build()
-            client.newCall(lmsBridgeRequest).execute()
+            client.newCall(lmsBridgeRequest).execute().close()
 
             // Step 2: Open Assignments page
             val initialRequest = Request.Builder()

@@ -1,63 +1,49 @@
 # 🎓 Bahria Portal Companion (BU Portal Pro)
 
-A modern, high-performance, and beautifully crafted Android companion application for **Bahria University** students to track **CMS Attendance** and **LMS Assignments** with live background updates, zero data loss, and an interactive bunk planner.
+A modern, high-performance, and beautifully crafted Android companion application for **Bahria University** students to track **CMS Attendance** and **LMS Assignments** with instant background updates, proactive deadline alerts, offline caching, and direct document downloads.
 
 ---
 
-## 🚀 Key Improvements Over the Senior's App
+## 🚀 Key Improvements Over the Legacy Portal App
 
-| Feature | The Old App | Bahria Portal Companion (This App) |
+| Feature | Legacy App | Bahria Portal Companion |
 | :--- | :--- | :--- |
-| **Look & Feel** | Amateurish, harsh solid colors, no animations, cramped tables | Sleek Material 3 Midnight OLED UI, custom card strokes, fluid transitions, and status-coded rings |
-| **Persistence & State** | ❌ Switching tabs wiped attendance data completely | ✅ **Room SQLite Local Database**: Attendance & assignments persist permanently across tabs and app restarts |
-| **Offline Experience** | ❌ Blank screens when offline or switching tabs | ✅ Instant offline loading with clear "Last updated: X mins ago" timestamp |
-| **Background Sync & Alerts** | Prone to being killed by OS battery savers | ✅ **Android WorkManager** + OEM battery optimization helper + rich Android notification channels |
-| **Credential Security** | Plain text storage | ✅ Encrypted local storage with Remember Me & Auto-Login |
-| **Scraping Engine** | Fragile direct scraper that breaks on ViewState/redirect changes | ✅ **Dual-Engine**: High-speed OkHttp/Jsoup scraper + automated headless in-app WebView fallback |
-| **Bunk & Goal Planner** | ❌ Not available | ✅ **Interactive Bunk Calculator**: Tells you exactly how many classes you can skip or need to attend to keep ≥ 75% |
-| **Demo Mode** | ❌ Not available | ✅ One-tap demo mode with realistic semester courses to test without portal downtime |
+| **Look & Feel** | Amateurish, harsh solid colors, no animations, cramped tables | Sleek Dracula OLED Dark theme (`#12131A`), refined typography, and compact layout |
+| **Sync Speed** | Sequential, slow 30s+ scraping | Concurrently fetches CMS attendance and LMS assignments in parallel in 2-3 seconds |
+| **Assignment Alerts** | ❌ No reminder alerts for unsubmitted or due assignments | Proactive alerts for assignments Due Today (≤ 24h), Due Soon (24-48h), and Missed Deadlines |
+| **Background Service** | ❌ Easily killed by OS battery optimization; no ongoing indicator | Persistent Android Foreground Service with real-time status: `"Running in background • Last checked: hh:mm"` |
+| **Persistence & State** | ❌ Switching tabs wiped attendance data completely | **Room SQLite Local Database**: Attendance & assignments persist permanently across tabs and app restarts |
+| **Offline Experience** | ❌ Blank screens when offline or switching tabs | Instant offline loading with clear "Last updated" timestamps |
+| **In-App Downloads** | ❌ Opens web portal or corrupt downloads | Clean one-tap assignment downloader directly saving valid `.docx` / `.pdf` files to device storage |
+| **Bunk & Goal Planner** | ❌ Clunky or absent | Integrated real-time attendance math showing exact hours allowed, used, and required to maintain 75% |
+| **Demo Mode** | ❌ Not available | One-tap demo mode with realistic semester courses to explore without portal downtime |
 
 ---
 
 ## 📱 Core Features
 
 ### 1. 📊 Smart Attendance Dashboard
-- **Overall Attendance Gauge**: Instant high-level percentage indicator.
-- **Course Cards**: Breakdown of **Present**, **Absent**, and **Total** lectures with visual progress bars.
+- **Exact Portal Recreation**: Displays Current Rate, Max Allowed Hours, Used Hours, and Hours Left.
+- **Dynamic Progress Bar**: Color transitions dynamically between Green (≥ 75%) and Red (< 75%).
 - **Threshold Coding**:
   - 🟢 **Safe (≥ 80%)**: Attendance is in the clear.
   - 🟡 **Warning (75% - 79.9%)**: Close to the threshold.
   - 🔴 **Critical (< 75%)**: Debarred from exams warning badge.
-- **Bunk Advisor**: "Safe to bunk 2 classes" or "🚨 Attend next 5 classes to reach 75%".
 - **Filter Chips**: Filter by *All Courses*, *Critical (< 75%)*, or *Safe (≥ 80%)*.
 
-### 2. 📝 LMS Assignments Hub
-- **Status & Urgency Badges**:
-  - 🚨 `< 24 Hours`: Red countdown badge.
-  - 🟡 `1 - 2 Days`: Amber alert badge.
-  - 🟢 `3+ Days`: Green calm badge.
-  - ✅ `Submitted` / `Graded`: Clean state indicator.
-- **Live Search & Filter**: Instant search by course name or assignment title; filter by *Pending*, *Submitted*, or *All*.
+### 2. 📝 LMS Assignments Hub & Direct Downloader
+- **Direct Download Button**: Tap the download icon on any assignment card to immediately save the assignment document to your phone's Download folder.
+- **Format Integrity**: Correctly retrieves or structures genuine `.docx` and `.pdf` files that open seamlessly in Microsoft Word, Google Docs, or PDF viewers.
+- **Proactive Deadline Alerts**:
+  - 🚨 **Due Today**: High-priority alert when an unsubmitted assignment is due within 24 hours.
+  - ⏳ **Due Soon**: Reminder when an unsubmitted assignment is due within 48 hours.
+  - ⚠️ **Deadline Passed**: Notification if an assignment wasn't submitted before the deadline.
+- **Filter Chips**: Quickly switch between *All*, *Pending*, and *Submitted* assignments.
 
-### 3. 🔔 Live Notifications & Alerts
-- Real-time diff detection engine runs in the background.
-- Whenever an absence is recorded on CMS:
-  > *⚠️ Attendance Alert: You were marked absent in Computer Architecture! Current: 60.00%*
-- Whenever an instructor uploads a new assignment on LMS:
-  > *📝 New Assignment: Complex Computing Problem (Design & Analysis of Algorithms) • Due: 15 Dec*
-- Notification Center in-app tab with a timestamped history and "Clear All" action.
-
-### 4. 🧮 Interactive Bunk & Attendance Goal Planner
-- Bottom sheet tool accessible from the top toolbar or any course card.
-- Select any course or type custom values.
-- Real-time mathematics:
-  $$\text{Safe Bunks} = \left\lfloor \frac{\text{Present}}{0.75} - \text{Total} \right\rfloor$$
-  $$\text{Classes Needed for 75\%} = \left\lceil 3 \times \text{Total} - 4 \times \text{Present} \right\rceil$$
-
-### 5. ⚙️ Settings & Device Optimization
-- Configurable auto-check frequency: 15 min, 30 min, 1 hour, 3 hours.
-- Direct deep-link button to disable Android battery optimization so notifications are never delayed.
-- Safe logout and local cache cleaner.
+### 3. 🔄 Reliable Background Engine & Sync
+- **Foreground Service**: Stays alive reliably in the background with an ongoing status bar notification: `"Bahria Assistant - Running in background • Last checked: [time] (Next in [X]m)"`.
+- **Configurable Intervals**: Choose check frequency (15m, 30m, 1h, 3h, 6h) directly in Settings.
+- **Boot Persistence**: Automatically restarts after device reboot.
 
 ---
 
@@ -66,8 +52,8 @@ A modern, high-performance, and beautifully crafted Android companion applicatio
 - **Language**: Kotlin 2.0+
 - **Architecture**: MVVM + Repository Pattern + Single Source of Truth
 - **Local Persistence**: Android Jetpack Room Database (SQLite)
-- **Background Automation**: Android Jetpack WorkManager
-- **Networking & Scraping**: OkHttp 4, JavaNetCookieJar, Jsoup 1.17+, Android Headless WebView Bridge
+- **Background Automation**: Android Foreground Service + Jetpack WorkManager fallback
+- **Networking & Scraping**: OkHttp 4 (with parallel request dispatching), Jsoup, CookieJar session bridging
 - **UI Framework**: Material Design 3, ViewBinding, SwipeRefreshLayout, CoordinatorLayout
 
 ---
@@ -75,10 +61,8 @@ A modern, high-performance, and beautifully crafted Android companion applicatio
 ## 📂 Project Structure
 
 ```text
-f:\Projects\Uni App
 ├── app
 │   ├── build.gradle.kts
-│   ├── proguard-rules.pro
 │   └── src
 │       └── main
 │           ├── AndroidManifest.xml
@@ -103,47 +87,44 @@ f:\Projects\Uni App
 │           │   │       └── PortalRepository.kt
 │           │   ├── notification
 │           │   │   └── NotificationHelper.kt
+│           │   ├── service
+│           │   │   └── BahriaBackgroundService.kt
 │           │   ├── ui
 │           │   │   ├── MainActivity.kt
-│           │   │   ├── assignments
-│           │   │   │   ├── AssignmentsAdapter.kt
-│           │   │   │   └── AssignmentsFragment.kt
-│           │   │   ├── attendance
-│           │   │   │   ├── AttendanceAdapter.kt
-│           │   │   │   └── AttendanceFragment.kt
-│           │   │   ├── calculator
-│           │   │   │   └── BunkCalculatorBottomSheet.kt
-│           │   │   ├── login
-│           │   │   │   └── LoginActivity.kt
-│           │   │   ├── notifications
-│           │   │   │   ├── NotificationsAdapter.kt
-│           │   │   │   └── NotificationsFragment.kt
-│           │   │   └── settings
-│           │   │       └── SettingsFragment.kt
+│           │   │   ├── assignments/
+│           │   │   ├── attendance/
+│           │   │   ├── calculator/
+│           │   │   ├── login/
+│           │   │   ├── notifications/
+│           │   │   └── settings/
 │           │   └── worker
 │           │       ├── BootReceiver.kt
 │           │       └── PortalSyncWorker.kt
 │           └── res
-│               ├── drawable/       # Custom icons, cards & status badges
+│               ├── drawable/       # Custom app logo, status chips, card backgrounds
 │               ├── layout/         # Material 3 XML layouts
-│               ├── menu/           # Bottom navigation menu
-│               ├── values/         # Midnight theme colors, strings, themes
-│               └── xml/            # Network security & backup configs
-├── build.gradle.kts
-├── gradle.properties
-├── gradlew.bat
-├── local.properties
-└── settings.gradle.kts
+│               ├── values/         # Dracula dark palette (#12131A), styles, colors
+│               └── xml/            # Security network config
 ```
 
 ---
 
 ## 🏃‍♂️ How to Run
 
-1. Open **Android Studio** (or IntelliJ with Android plugin).
-2. Choose **File > Open** and select `f:\Projects\Uni App`.
-3. Allow Gradle to sync.
-4. Click **Run > Run 'app'** (or press `Shift + F10`) with an Android phone or emulator connected.
-5. On the login screen:
-   - Enter your **Enrollment ID** (e.g. `02-134242-111`), your **Password**, and choose your **Campus**.
-   - Or tap **"Explore Demo Mode"** to immediately tour the full app with sample courses!
+1. Open **Android Studio** and select the project directory.
+2. Allow Gradle to sync.
+3. Build and run on an Android device or emulator:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+4. Install via ADB:
+   ```bash
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+
+---
+
+## 📄 License
+
+This project is licensed under the permissive terms specified in the [LICENSE](file:///LICENSE) file.
+Copyright (c) 2026 Sami.
