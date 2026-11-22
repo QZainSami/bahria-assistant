@@ -4,45 +4,45 @@ A modern, high-performance, and beautifully crafted Android companion applicatio
 
 ---
 
-## 🚀 Key Improvements Over the Legacy Portal App
+## ✨ Features & Highlights
 
-| Feature | Legacy App | Bahria Portal Companion |
-| :--- | :--- | :--- |
-| **Look & Feel** | Amateurish, harsh solid colors, no animations, cramped tables | Sleek Dracula OLED Dark theme (`#12131A`), refined typography, and compact layout |
-| **Sync Speed** | Sequential, slow 30s+ scraping | Concurrently fetches CMS attendance and LMS assignments in parallel in 2-3 seconds |
-| **Assignment Alerts** | ❌ No reminder alerts for unsubmitted or due assignments | Proactive alerts for assignments Due Today (≤ 24h), Due Soon (24-48h), and Missed Deadlines |
-| **Background Service** | ❌ Easily killed by OS battery optimization; no ongoing indicator | Persistent Android Foreground Service with real-time status: `"Running in background • Last checked: hh:mm"` |
-| **Persistence & State** | ❌ Switching tabs wiped attendance data completely | **Room SQLite Local Database**: Attendance & assignments persist permanently across tabs and app restarts |
-| **Offline Experience** | ❌ Blank screens when offline or switching tabs | Instant offline loading with clear "Last updated" timestamps |
-| **In-App Downloads** | ❌ Opens web portal or corrupt downloads | Clean one-tap assignment downloader directly saving valid `.docx` / `.pdf` files to device storage |
-| **Bunk & Goal Planner** | ❌ Clunky or absent | Integrated real-time attendance math showing exact hours allowed, used, and required to maintain 75% |
-| **Demo Mode** | ❌ Not available | One-tap demo mode with realistic semester courses to explore without portal downtime |
+- **⚡ Instant Parallel Sync**: Concurrently fetches CMS attendance and LMS assignments across all registered courses in ~2–3 seconds using optimized asynchronous requests.
+- **🎨 Sleek Dracula OLED Dark Theme**: Implements an ultra-deep dark palette (`#12131A`), refined typography, and a compact, clean interface.
+- **🚨 Proactive Deadline Alerts**: Automated alerts for unsubmitted assignments due today (≤ 24 hours), due soon (24–48 hours), or when a deadline was missed.
+- **🛡️ Persistent Background Service**: Dedicated Android Foreground Service that runs scheduled checks and displays an ongoing status notification: `"Bahria Assistant - Running in background • Last checked: [time]"`.
+- **💾 Full Offline Persistence**: Powered by Android Jetpack Room Database (SQLite) so attendance records, assignment details, and notifications remain instantly accessible offline.
+- **📥 Direct Document Downloader**: Download assignment problem files directly from the LMS in authentic `.docx` or `.pdf` formats that open seamlessly on any office suite or reader.
+- **📊 Real-Time Attendance Intelligence**: Live calculation of Current Rate, Max Allowed Hours, Used Hours, and Hours Left with visual status bars and exam eligibility warnings.
+- **🧪 One-Tap Demo Mode**: Full offline simulation with realistic university courses to test the app without needing portal credentials or active server availability.
 
 ---
 
-## 📱 Core Features
+## 📱 Detailed Capabilities
 
 ### 1. 📊 Smart Attendance Dashboard
-- **Exact Portal Recreation**: Displays Current Rate, Max Allowed Hours, Used Hours, and Hours Left.
-- **Dynamic Progress Bar**: Color transitions dynamically between Green (≥ 75%) and Red (< 75%).
-- **Threshold Coding**:
-  - 🟢 **Safe (≥ 80%)**: Attendance is in the clear.
-  - 🟡 **Warning (75% - 79.9%)**: Close to the threshold.
-  - 🔴 **Critical (< 75%)**: Debarred from exams warning badge.
+- **Exact Calculation**: Displays Current Rate, Max Allowed Absence Hours, Used Hours, and Hours Left.
+- **Dynamic Level Bar**: Seamless color indication reflecting attendance safety levels (Green for ≥ 75%, Red for < 75%).
+- **Attendance Warnings**:
+  - 🟢 **Safe (≥ 80%)**: Full exam clearance.
+  - 🟡 **Warning (75% - 79.9%)**: Nearing threshold warning.
+  - 🔴 **Critical (< 75%)**: Debarred status warning badge.
 - **Filter Chips**: Filter by *All Courses*, *Critical (< 75%)*, or *Safe (≥ 80%)*.
 
-### 2. 📝 LMS Assignments Hub & Direct Downloader
-- **Direct Download Button**: Tap the download icon on any assignment card to immediately save the assignment document to your phone's Download folder.
-- **Format Integrity**: Correctly retrieves or structures genuine `.docx` and `.pdf` files that open seamlessly in Microsoft Word, Google Docs, or PDF viewers.
-- **Proactive Deadline Alerts**:
+### 2. 📝 LMS Assignments Hub & In-App Downloader
+- **Direct Download Action**: Tap the download icon on any assignment card to immediately save the problem file to your phone's storage.
+- **Document Integrity**: Saves authentic `.docx` and `.pdf` files, preventing corrupt downloads.
+- **Intelligent Alert Engine**:
   - 🚨 **Due Today**: High-priority alert when an unsubmitted assignment is due within 24 hours.
   - ⏳ **Due Soon**: Reminder when an unsubmitted assignment is due within 48 hours.
-  - ⚠️ **Deadline Passed**: Notification if an assignment wasn't submitted before the deadline.
+  - ⚠️ **Deadline Passed**: Notification if an assignment deadline passed without submission.
 - **Filter Chips**: Quickly switch between *All*, *Pending*, and *Submitted* assignments.
 
-### 3. 🔄 Reliable Background Engine & Sync
-- **Foreground Service**: Stays alive reliably in the background with an ongoing status bar notification: `"Bahria Assistant - Running in background • Last checked: [time] (Next in [X]m)"`.
-- **Configurable Intervals**: Choose check frequency (15m, 30m, 1h, 3h, 6h) directly in Settings.
+### 3. 🔄 Reliable Background Engine
+- **Foreground Service**: Ensures background checks persist reliably across system battery optimizations.
+- **Status Notification**: Shows a persistent notification in the status bar:
+  > **Bahria Assistant**  
+  > *Running in background • Last checked: [time] (Next in [X]m)*
+- **Configurable Intervals**: Choose check frequency (15m, 30m, 1h, 3h, 6h) directly from Settings.
 - **Boot Persistence**: Automatically restarts after device reboot.
 
 ---
@@ -52,7 +52,7 @@ A modern, high-performance, and beautifully crafted Android companion applicatio
 - **Language**: Kotlin 2.0+
 - **Architecture**: MVVM + Repository Pattern + Single Source of Truth
 - **Local Persistence**: Android Jetpack Room Database (SQLite)
-- **Background Automation**: Android Foreground Service + Jetpack WorkManager fallback
+- **Background Automation**: Android Foreground Service + Jetpack WorkManager
 - **Networking & Scraping**: OkHttp 4 (with parallel request dispatching), Jsoup, CookieJar session bridging
 - **UI Framework**: Material Design 3, ViewBinding, SwipeRefreshLayout, CoordinatorLayout
 
